@@ -30,6 +30,7 @@ def save_userdata(userData):
     with open('UserData.json', 'w') as file:
         json.dump(userData, file, indent=3)
 
+
 def assign_guest():
     currentUser = {
         "userType": "Guest",
@@ -71,8 +72,8 @@ def interact_with_options(currentUser):
                 pass
         elif choice == "delete Account" or choice == "3":
             delete_account(currentUser)
-            userData=open_userdata()
-            login_list=get_login_list()
+            userData = open_userdata()
+            login_list = get_login_list()
             if currentUser['login'] not in login_list:
                 currentUser = assign_guest()
         elif choice == "exit" or choice == "4":
@@ -144,9 +145,7 @@ def delete_account(currentUser):
     login_list = get_login_list()
     if currentUser['userType'] == 'Admin':
         user_to_delete = input("Write, which user you want to delete")
-        user_found = False
         if user_to_delete in login_list:
-            user_found = True
             confirmation = custom_lower(input(f"Are you sure you want to delete user {user_to_delete}? Yes/No\n"))
             if custom_lower(confirmation) == 'yes':
                 index = find_index(login_list, user_to_delete)
@@ -173,7 +172,6 @@ def block_account(currentUser):
 
 def unblock_user(currentUser):
     pass
-
 
 
 def main():
