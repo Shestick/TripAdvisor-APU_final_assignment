@@ -42,41 +42,70 @@ def assign_guest():
 
 
 def show_options(currentUser):
+    options = []
     if currentUser['userType'] == 'Admin':
-        options = 'Option1A\nOption2A\nOption3A'
+        options = ['Log in', 'Log out', 'Block Account', 'Unblock Account', 'Update promotion', 'Provide trip recommendation']
     elif currentUser['userType'] == 'Service':
-        options = 'Option1S\nOption2S\nOption3S'
+        options = ['Log in', 'Log out', 'Manage Services', 'Manage Booking']
     elif currentUser['userType'] == 'Traveller':
-        options = 'Option1T\nOption2T\nOption3T'
+        options = ['Log in', 'Log out', 'Explore Services', 'Explore Destinations', 'View recommended', 'Check availability']
     elif currentUser['userType'] == 'Guest':
-        options = 'Log in\nSign up\nSearch'
-    options += "\nExit"
-    print(options)
+        options = ['Log in', 'Sign up', 'Explore Services', 'Explore Destinations', 'View recommended', 'Check availability']
+    options.append("Exit")
+    # options = custom_lower(options)
+    return options
+
+
+def function_call(index, currentUser):
+    if index == 0:
+        currentUser = log_in_account(currentUser)
+        return 1, currentUser
+    elif index == 1:
+        create_account(currentUser)
+        confirmation = custom_lower(input("Would you like to stay signed in this account? Yes/No\n"))
+        if confirmation == "yes" or confirmation == "1":
+            userData = open_userdata()
+            currentUser = userData[-1]
+        return 1, currentUser
+    elif index == 2:
+        pass
+    elif index == 3:
+        pass
+    elif index == 4:
+        pass
+    elif index == 5:
+        delete_account(currentUser)
+        login_list = get_login_list()
+        if currentUser['login'] not in login_list:
+            currentUser = assign_guest()
+        return "1", currentUser
+    elif index == 6:
+        return "0", currentUser
+    else:
+        print("There are no such option available")
+        return 1, currentUser
 
 
 def interact_with_options(currentUser):
+    full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'exit']
     while True:
         print(f"You are currently logged as {currentUser['userType']}\n"
               f"With your current access rights, you have access to: ")
-        show_options(currentUser)
+        options = show_options(currentUser)
+        alternative = [(index+1) for index in range(len(options))]
+        print('\n'.join(option for option in options))
         choice = custom_lower(input("What would you like to do?\n"))
-        if choice == "log in" or choice == "1":
-            currentUser = log_in_account(currentUser)
-        elif choice == "sign up" or choice == "2":
-            create_account(currentUser)
-            confirmation = custom_lower(input("Would you like to stay signed in this account? Yes/No\n"))
-            if confirmation == "yes" or confirmation == "1":
-                userData = open_userdata()
-                currentUser = userData[-1]
-            else:
-                pass
-        elif choice == "delete Account" or choice == "3":
-            delete_account(currentUser)
-            userData = open_userdata()
-            login_list = get_login_list()
-            if currentUser['login'] not in login_list:
-                currentUser = assign_guest()
-        elif choice == "exit" or choice == "4":
+        for i in range(len(options)):
+            options[i] = custom_lower(options[i])
+        if choice in options:
+            index = find_index(full_options, choice)
+            check, currentUser = function_call(index, currentUser)
+        elif int(choice) in alternative:
+            index = find_index(full_options, options[int(choice)-1])
+            check, currentUser = function_call(index, currentUser)
+        else:
+            print("There are no such option")
+        if check == "0":
             break
 
 
@@ -87,12 +116,14 @@ def create_account(currentUser):
     while newUser['userType'] == 'default':
         userType = custom_lower(input("Please, enter which account you want to create: Admin, Service or Traveller\n"
                                       "Be aware that only Admins are allowed to create additional Admin accounts\n"))
-        if userType == 'admin' and currentUser['userType'] == 'Admin':
+        if (userType == 'admin' or userType == '1') and currentUser['userType'] == 'Admin':
             newUser['userType'] = userType
-        elif userType == 'admin' and currentUser['userType'] != 'Admin':
+        elif (userType == 'admin' or userType == '1') and currentUser['userType'] != 'Admin':
             print("You have insufficient access rights")
-        elif userType == 'service' or userType == 'Traveller':
-            newUser['userType'] = userType
+        elif userType == 'service' or userType == '2':
+            newUser['userType'] = 'Service'
+        elif userType == 'traveler' or userType == '3':
+            newUser['userType'] = 'Traveller'
         else:
             print("There is no such account type, enter valid option")
     newUser['login'] = input("Please, set your login: ")
@@ -144,10 +175,10 @@ def delete_account(currentUser):
     userData = open_userdata()
     login_list = get_login_list()
     if currentUser['userType'] == 'Admin':
-        user_to_delete = input("Write, which user you want to delete")
+        user_to_delete = input("Write, which user you want to delete\n")
         if user_to_delete in login_list:
             confirmation = custom_lower(input(f"Are you sure you want to delete user {user_to_delete}? Yes/No\n"))
-            if custom_lower(confirmation) == 'yes':
+            if custom_lower(confirmation) == 'yes' or custom_lower(confirmation) == '1':
                 index = find_index(login_list, user_to_delete)
                 del userData[index]
                 save_userdata(userData)
@@ -159,14 +190,14 @@ def delete_account(currentUser):
     else:
         user_to_delete = currentUser["login"]
         confirmation = custom_lower(input(f"Are you sure you want to delete user {user_to_delete}? Yes/No\n"))
-        if custom_lower(confirmation) == 'yes':
+        if custom_lower(confirmation) == 'yes' or custom_lower(confirmation) == '1':
             index = find_index(login_list, user_to_delete)
             del userData[index]
             save_userdata(userData)
             print(f'User {user_to_delete} successfully deleted')
 
 
-def block_account(currentUser):
+def block_user(currentUser):
     pass
 
 
