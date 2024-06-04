@@ -24,12 +24,6 @@
       "active": true
    },
    {
-      "userType": "Service",
-      "login": "Shestick",
-      "password": "falcon14",
-      "active": true
-   },
-   {
       "userType": "Traveller",
       "login": "newUser",
       "password": "test",

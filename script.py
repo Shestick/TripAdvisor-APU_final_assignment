@@ -44,13 +44,13 @@ def assign_guest():
 def show_options(currentUser):
     options = []
     if currentUser['userType'] == 'Admin':
-        options = ['Log in', 'Log out', 'Block Account', 'Unblock Account', 'Update promotion', 'Provide trip recommendation']
+        options = ['Log in', 'Log out', 'Block Account(in development)', 'Unblock Account(in development)', 'Delete Account', 'Update promotion(in development)', 'Provide trip recommendation(in development)']
     elif currentUser['userType'] == 'Service':
-        options = ['Log in', 'Log out', 'Manage Services', 'Manage Booking']
+        options = ['Log in', 'Log out', 'Manage Services(in development)', 'Manage Booking(in development)']
     elif currentUser['userType'] == 'Traveller':
-        options = ['Log in', 'Log out', 'Explore Services', 'Explore Destinations', 'View recommended', 'Check availability']
+        options = ['Log in', 'Log out', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)']
     elif currentUser['userType'] == 'Guest':
-        options = ['Log in', 'Sign up', 'Explore Services', 'Explore Destinations', 'View recommended', 'Check availability']
+        options = ['Log in', 'Sign up', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)']
     options.append("Exit")
     # options = custom_lower(options)
     return options
