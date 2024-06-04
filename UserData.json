@@ -1,0 +1,32 @@
+[
+   {
+      "userType": "Admin",
+      "login": "loginAdmin",
+      "password": "passwordAdmin",
+      "active": true
+   },
+   {
+      "userType": "Service",
+      "login": "loginService",
+      "password": "passwordService",
+      "active": true
+   },
+   {
+      "userType": "Traveller",
+      "login": "loginTraveller",
+      "password": "passwordTraveller",
+      "active": true
+   },
+   {
+      "userType": "Guest",
+      "login": null,
+      "password": null,
+      "active": true
+   },
+   {
+      "userType": "Service",
+      "login": "Shestick",
+      "password": "falcon14",
+      "active": true
+   }
+]
