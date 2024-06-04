@@ -46,11 +46,11 @@ def show_options(currentUser):
     if currentUser['userType'] == 'Admin':
         options = ['Log in', 'Log out(in development)', 'Block Account(in development)', 'Unblock Account(in development)', 'Delete Account', 'Update promotion(in development)', 'Provide trip recommendation(in development)']
     elif currentUser['userType'] == 'Service':
-        options = ['Log in', 'Log out(in development)', 'Manage Services(in development)', 'Manage Booking(in development)']
+        options = ['Log in', 'Log out(in development)', 'Manage Services(in development)', 'Manage Booking(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Traveller':
-        options = ['Log in', 'Log out(in development)', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)']
+        options = ['Log in', 'Log out(in development)', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Guest':
-        options = ['Log in', 'Sign up', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)']
+        options = ['Log in', 'Sign up', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
     options.append("Exit")
     # options = custom_lower(options)
     return options
