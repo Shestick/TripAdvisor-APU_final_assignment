@@ -96,6 +96,7 @@ def function_call(index, currentUser):
 def interact_with_options(currentUser):
     full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'log out', 'exit']
     while True:
+        check = 0
         print(f"\n\nYou are currently logged as {currentUser['userType']}\n"
               f"With your current access rights, you have access to: ")
         options_to_show = show_options(currentUser)
