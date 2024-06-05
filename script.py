@@ -34,8 +34,8 @@ def save_userdata(userData):
 def assign_guest():
     currentUser = {
         "userType": "Guest",
-        "login": None,
-        "password": None,
+        "login": "default",
+        "password": "default",
         "active": True
     }
     return currentUser
@@ -44,11 +44,11 @@ def assign_guest():
 def show_options(currentUser):
     options = []
     if currentUser['userType'] == 'Admin':
-        options = ['Log in', 'Log out(in development)', 'Block Account(in development)', 'Unblock Account(in development)', 'Delete Account', 'Update promotion(in development)', 'Provide trip recommendation(in development)']
+        options = ['Log in', 'Log out', 'Block User', 'Unblock User', 'Delete Account', 'Update promotion(in development)', 'Provide trip recommendation(in development)']
     elif currentUser['userType'] == 'Service':
-        options = ['Log in', 'Log out(in development)', 'Manage Services(in development)', 'Manage Booking(in development)', 'Delete Account']
+        options = ['Log in', 'Log out', 'Manage Services(in development)', 'Manage Booking(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Traveller':
-        options = ['Log in', 'Log out(in development)', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
+        options = ['Log in', 'Log out', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Guest':
         options = ['Log in', 'Sign up', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
     options.append("Exit")
@@ -59,53 +59,62 @@ def show_options(currentUser):
 def function_call(index, currentUser):
     if index == 0:
         currentUser = log_in_account(currentUser)
-        return 1, currentUser
+        return 0, currentUser
     elif index == 1:
         create_account(currentUser)
         confirmation = custom_lower(input("Would you like to stay signed in this account? Yes/No\n"))
         if confirmation == "yes" or confirmation == "1":
             userData = open_userdata()
             currentUser = userData[-1]
-        return 1, currentUser
+        return 0, currentUser
     elif index == 2:
         pass
     elif index == 3:
-        pass
+        block_account(currentUser)
+        return 0, currentUser
     elif index == 4:
-        pass
+        unblock_account(currentUser)
+        return 0, currentUser
     elif index == 5:
         delete_account(currentUser)
         login_list = get_login_list()
         if currentUser['login'] not in login_list:
             currentUser = assign_guest()
-        return "1", currentUser
+        return 0, currentUser
     elif index == 6:
-        return "0", currentUser
+        confirmation = custom_lower(input("Are you sure you want to log out? Yes/No\n"))
+        if confirmation == "yes" or confirmation == "1":
+            currentUser = assign_guest()
+        return 0, currentUser
+    elif index == 7:
+        return 1, currentUser
     else:
         print("There are no such option available")
-        return 1, currentUser
+        return 0, currentUser
 
 
 def interact_with_options(currentUser):
-    full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'exit']
+    full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'log out', 'exit']
     while True:
-        print(f"You are currently logged as {currentUser['userType']}\n"
+        print(f"\n\nYou are currently logged as {currentUser['userType']}\n"
               f"With your current access rights, you have access to: ")
-        options = show_options(currentUser)
-        alternative = [(index+1) for index in range(len(options))]
-        print('\n'.join(option for option in options))
+        options_to_show = show_options(currentUser)
+        options_to_process = []
+        for i in range(len(options_to_show)):
+            options_to_process.append(custom_lower(options_to_show[i]))
+        alternative = [(index+1) for index in range(len(options_to_show))]
+        print('\n'.join(f"{num+1}: {option}" for num, option in enumerate(options_to_show)))
+        # print(options_to_process)
         choice = custom_lower(input("What would you like to do?\n"))
-        for i in range(len(options)):
-            options[i] = custom_lower(options[i])
-        if choice in options:
+        if choice in options_to_process:
             index = find_index(full_options, choice)
             check, currentUser = function_call(index, currentUser)
         elif int(choice) in alternative:
-            index = find_index(full_options, options[int(choice)-1])
+            index = find_index(full_options, options_to_process[int(choice)-1])
             check, currentUser = function_call(index, currentUser)
         else:
             print("There are no such option")
-        if check == "0":
+        if check == 1:
             break
 
 
@@ -117,7 +126,7 @@ def create_account(currentUser):
         userType = custom_lower(input("Please, enter which account you want to create: Admin, Service or Traveller\n"
                                       "Be aware that only Admins are allowed to create additional Admin accounts\n"))
         if (userType == 'admin' or userType == '1') and currentUser['userType'] == 'Admin':
-            newUser['userType'] = userType
+            newUser['userType'] = 'Admin'
         elif (userType == 'admin' or userType == '1') and currentUser['userType'] != 'Admin':
             print("You have insufficient access rights")
         elif userType == 'service' or userType == '2':
@@ -142,8 +151,26 @@ def create_account(currentUser):
 
 def get_login_list():
     userData = open_userdata()
-    login_list = [userData[i]['login'] for i in range(len(userData))]
+    login_list = [user['login'] for user in userData]
     return login_list
+
+
+def get_active_login_list():
+    userData = open_userdata()
+    active_login_list = []
+    for user in userData:
+        if user['active']:
+            active_login_list.append(user['login'])
+    return active_login_list
+
+
+def get_blocked_login_list():
+    userData = open_userdata()
+    blocked_login_list = []
+    for user in userData:
+        if not user['active']:
+            blocked_login_list.append(user['login'])
+    return blocked_login_list
 
 
 def log_in_account(currentUser):
@@ -169,6 +196,71 @@ def log_in_account(currentUser):
                 print("Your password is wrong, try again or type 0 to cancel")
         else:
             print("There are no such user, try again or type 0 to cancel")
+
+
+# def log_out():
+#     currentUser = assign_guest()
+#     return currentUser
+
+def block_account(currentUser):
+    while True:
+        if currentUser['userType'] != 'Admin':
+            print("How did you get this option???")
+        active_users = get_active_login_list()
+        blocked_users = get_blocked_login_list()
+        print(f"Currently active users:\n{'\n'.join(user for user in active_users)}")
+        user_to_block = input("Which user do you want to block?\nType 0 to cancel\n")
+        if user_to_block == "0":
+            break
+        elif user_to_block in active_users and user_to_block != currentUser['login']:
+            confirmation = input(f"Are you sure you want to block user {user_to_block}? Yes/No\n")
+            if custom_lower(confirmation) == 'yes' or confirmation == '1':
+                login_list = get_login_list()
+                index = find_index(login_list, user_to_block)
+                userData = open_userdata()
+                userData[index]['active'] = False
+                save_userdata(userData)
+                print(f"User {user_to_block} successfully blocked")
+        elif user_to_block in active_users and user_to_block == currentUser['login']:
+            print("You can not block yourself")
+        elif user_to_block in blocked_users:
+            print(f"User {user_to_block} is already blocked")
+        else:
+            print(f"User {user_to_block} not found")
+        tmp = input("Do you wish to continue blocking? Yes/No\n")
+        if custom_lower(tmp) == 'no' or tmp == '2':
+            break
+
+
+def unblock_account(currentUser):
+    while True:
+        if currentUser['userType'] != 'Admin':
+            print("How did you get this option???")
+        active_users = get_active_login_list()
+        blocked_users = get_blocked_login_list()
+        if blocked_users == []:
+            print("There are no currently blocked users")
+            break
+        print(f"Currently blocked users:\n{'\n'.join(user for user in blocked_users)}")
+        user_to_unblock = input("Which user do you want to unblock?\nType 0 to cancel\n")
+        if user_to_unblock == "0":
+            break
+        elif user_to_unblock in blocked_users:
+            confirmation = input(f"Are you sure you want to block user {user_to_unblock}? Yes/No\n")
+            if custom_lower(confirmation) == 'yes' or confirmation == '1':
+                login_list = get_login_list()
+                index = find_index(login_list, user_to_unblock)
+                userData = open_userdata()
+                userData[index]['active'] = True
+                save_userdata(userData)
+                print(f"User {user_to_unblock} successfully unblocked")
+        elif user_to_unblock in active_users:
+            print(f"User {user_to_unblock} is not blocked")
+        else:
+            print(f"User {user_to_unblock} not found")
+        tmp = input("Do you wish to continue unblocking? Yes/No\n")
+        if custom_lower(tmp) == 'no' or tmp == '2':
+            break
 
 
 def delete_account(currentUser):
@@ -197,18 +289,12 @@ def delete_account(currentUser):
             print(f'User {user_to_delete} successfully deleted')
 
 
-def block_user(currentUser):
-    pass
-
-
-def unblock_user(currentUser):
-    pass
-
-
 def main():
     currentUser = assign_guest()
     # tmp = get_login_list()
     # print(tmp)
+    # login_list = get_login_list()
+    # print(login_list)
     interact_with_options(currentUser)
 
 

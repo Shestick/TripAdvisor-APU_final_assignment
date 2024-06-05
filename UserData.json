@@ -19,14 +19,14 @@
    },
    {
       "userType": "Guest",
-      "login": null,
-      "password": null,
+      "login": "default",
+      "password": "default",
       "active": true
    },
    {
       "userType": "Traveller",
       "login": "newUser",
       "password": "test",
-      "active": true
+      "active": false
    }
 ]
