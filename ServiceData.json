@@ -5,20 +5,22 @@
       "placing": "destination1",
       "quantity": "10",
       "price": "50RYM",
-      "schedule": [
-         "10 June",
-         "15 June"
-      ]
+      "schedule": "From 10 June to 15 june"
    },
    {
-      "serviceName": "Restourant",
+      "serviceName": "Restaurant",
       "userHost": "loginService",
       "placing": "destination1",
-      "quantity": "20",
-      "price": "60-100RYM",
-      "schedule": [
-         "15 Oct",
-         "28 Nov"
-      ]
+      "quantity": "30",
+      "price": "85RYM-110RYM",
+      "schedule": "From 15 Oct to 28 Nov"
+   },
+   {
+      "serviceName": "Hotel",
+      "userHost": "loginService",
+      "placing": "Not mentioned",
+      "quantity": "15",
+      "price": "150RYM-200RYM",
+      "schedule": "Continuous"
    }
 ]

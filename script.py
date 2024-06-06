@@ -144,7 +144,7 @@ def interact_with_options(currentUser):
         # for i in range(len(options_to_show)):
         #     options_to_process.append(custom_lower(options_to_show[i]))
         alternative = [(index+1) for index in range(len(options_to_show))]
-        print('\n'.join(f"{num+1}: {option}" for num, option in enumerate(options_to_show)))
+        print('\n'.join(f"{num+1}. {option}" for num, option in enumerate(options_to_show)))
         # print(options_to_process)
         choice = custom_lower(input("What would you like to do?\n"))
         if choice in options_to_process:
@@ -355,14 +355,14 @@ def manage_services(currentUser):
         if service_list == []:
             to_process = input("What would you like to do?\nAdd Service\nExit\n")
         else:
-            print(f"You are currently providing:\n{'\n'.join(service for service in service_list)}")
-            to_process = input("What would you like to do?\nAdd Service\nManage Services\nDelete Service\nExit\n")
+            print(f"You are currently providing:\n{'\n'.join(service for service in service_list)}\n")
+            to_process = input("What would you like to do?\n1. Add Service\n2. Update Services\n3. Delete Service\n4. Exit\n")
         if custom_lower(to_process) == "exit" or to_process == '4':
             break
         elif custom_lower(to_process) == "add service" or to_process == '1':
             add_service(currentUser)
-        elif custom_lower(to_process) == "manage service" or to_process == '2':
-            pass
+        elif custom_lower(to_process) == "update service" or to_process == '2':
+            update_service(service_list)
         elif custom_lower(to_process) == "delete service" or to_process == '3':
             pass
 
@@ -390,25 +390,20 @@ def add_service(currentUser):
         new_service["placing"] = 'Not mentioned'
     new_service['quantity'] = input("Enter the provided quantity of your service\n")
     new_service['price'] = input("Enter the price of your service\n")
-    start_date = input("Enter your service start date as 'number month' or 'continuous' if your service is not expiring\n")
-    schedule = [start_date]
-    if schedule[0] != 'continuous':
-        end_date = input("Enter your service end date as 'number month'\n")
-        schedule.append(end_date)
+    start_date = input("Enter your service start date as 'Day Month' or 'Continuous' if your service is not expiring\n")
+    if custom_lower(start_date) != 'continuous':
+        end_date = input("Enter your service end date as 'Day Month'\n")
+        schedule = f"From {start_date} to {end_date}"
     else:
-        schedule.append('Not mentioned')
+        schedule = 'Continuous'
     new_service['schedule'] = schedule
     print(f"Service name: {new_service['serviceName']}\n"
-                         f"Hosted by: {new_service['userHost']}\n"
-                         f"Located in/near: {new_service['placing']}\n"
-                         f"Provided quantity: {new_service['quantity']}\n"
-                         f"Price: {new_service['price']}\n", end='')
-    if new_service['schedule'][0] == 'continuous':
-        confirmation = input(f"Schedule: {new_service['schedule'][0]}\n"
-                             f"Do you wish to save current service? Yes/No\n")
-    else:
-        confirmation = input(f"Schedule: From {new_service['schedule'][0]} to {new_service['schedule'][1]}\n"
-                             f"Do you wish to save current service? Yes/No\n")
+          f"Hosted by: {new_service['userHost']}\n"
+          f"Location: {new_service['placing']}\n"
+          f"Provided quantity: {new_service['quantity']}\n"
+          f"Price: {new_service['price']}\n"
+          f"Schedule: {new_service['schedule']}\n")
+    confirmation = input("Do you wish to save current service? Yes/No\n")
     if custom_lower(confirmation) == 'yes' or confirmation == '1':
         serviceData = open_service_data()
         serviceData.append(new_service)
@@ -417,7 +412,84 @@ def add_service(currentUser):
         print("Service creation cancelled")
 
 
+# def update_service_aux()
 
+
+def update_service(service_list):
+    while True:
+        if service_list[-1] != 'Exit':
+            service_list.append('Exit')
+        print(f"You are currently providing:\n{'\n'.join(f"{num+1}. {service}" for num, service in enumerate(service_list))}\n")
+        to_process = input("Which of your services you would like to update?\n")
+        alternative = [str(index + 1) for index in range(len(service_list))]
+        if custom_lower(to_process) == 'exit' or int(to_process) == len(service_list):
+            print("Service update cancelled")
+            break
+        elif custom_lower(to_process) in custom_lower_list(service_list):
+            index = find_index(custom_lower_list(service_list), custom_lower(to_process))
+        elif to_process in alternative:
+            index = int(to_process) - 1
+        else:
+            print("There is no such service")
+            index = -1
+        while index != -1:
+            serviceData = open_service_data()
+            print(f"1. Service name: {serviceData[index]['serviceName']}\n"
+                  f"2. Hosted by: {serviceData[index]['userHost']}\n"
+                  f"3. Location: {serviceData[index]['placing']}\n"
+                  f"4. Provided quantity: {serviceData[index]['quantity']}\n"
+                  f"5. Price: {serviceData[index]['price']}\n"
+                  f"6. Schedule: {serviceData[index]['schedule']}\n"
+                  f"7. Exit")
+            to_update = input("Which part you would like to update?\n")
+            if custom_lower(to_update) == 'service name' or custom_lower(to_update) == 'name' or to_update == '1':
+                new_name = input(f"Current Service name: {serviceData[index]['serviceName']}\n"
+                                 f"New Service name: ")
+                serviceData[index]['serviceName'] = new_name
+                save_service_data(serviceData)
+                print("Service update successful")
+            elif custom_lower(to_update) == 'hosted by' or to_update == '2':
+                print("You can not update this")
+            elif custom_lower(to_update) == 'location' or to_update == '3':
+                destination_list = get_destination_list()
+                destination_list.append('Not mentioned')
+                new_location = input(f"Current Location: {serviceData[index]['placing']}\n"
+                                     f"Available locations:\n{'\n'.join(destination for destination in destination_list)}\n"
+                                     f"New Location: ")
+                if custom_lower(new_location) in custom_lower_list(destination_list):
+                    serviceData[index]['placing'] = new_location
+                    save_service_data(serviceData)
+                    print("Service update successful")
+                else:
+                    print("There is no such location available")
+            elif custom_lower(to_update) == 'provided quantity' or custom_lower(to_update) == 'quantity' or to_update == '4':
+                new_quantity = input(f"Current Quantity: {serviceData[index]['quantity']}\n"
+                                     f"New Quantity: ")
+                serviceData[index]['quantity'] = new_quantity
+                save_service_data(serviceData)
+                print("Service update successful")
+            elif custom_lower(to_update) == 'price' or to_update == '5':
+                new_price = input(f"Current Price: {serviceData[index]['price']}\n"
+                                  f"New Price: ")
+                serviceData[index]['price'] = new_price
+                save_service_data(serviceData)
+                print("Service update successful")
+            elif custom_lower(to_update) == 'schedule' or to_update == '6':
+                new_start_date = input(f"Current schedule: {serviceData[index]['price']}\n"
+                                       f"Type new start date 'Day Month' or 'Continuous': ")
+                if custom_lower(new_start_date) != 'continuous':
+                    new_end_date = input("Type new end date 'Day Month' or 'Continuous': ")
+                    schedule = f"From {new_start_date} to {new_end_date}"
+                else:
+                    schedule = 'continuous'
+                serviceData[index]['schedule'] = schedule
+                save_service_data(serviceData)
+                print("Service update successful")
+            elif custom_lower(to_update) == 'exit' or to_update == '7':
+                print("Returning to service page...")
+                break
+            else:
+                print("This is not a valid option")
 
 def main():
     currentUser = assign_guest()
