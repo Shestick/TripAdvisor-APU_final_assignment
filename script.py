@@ -73,13 +73,16 @@ def assign_guest():
 def show_options(currentUser):
     options = []
     if currentUser['userType'] == 'Admin':
-        options = ['Log in', 'Log out', 'Block User', 'Unblock User', 'Delete Account', 'Update promotion(in development)', 'Provide trip recommendation(in development)']
+        options = ['Log in', 'Log out', 'Block User', 'Unblock User', 'Delete Account',
+                   'Update promotion(in development)', 'Provide trip recommendation(in development)']
     elif currentUser['userType'] == 'Service':
         options = ['Log in', 'Log out', 'Manage Services', 'Manage Booking(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Traveller':
-        options = ['Log in', 'Log out', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
+        options = ['Log in', 'Log out', 'Explore Services(in development)', 'Explore Destinations(in development)',
+                   'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Guest':
-        options = ['Log in', 'Sign up', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
+        options = ['Log in', 'Sign up', 'Explore Services(in development)', 'Explore Destinations(in development)',
+                   'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
     options.append("Exit")
     # options = custom_lower(options)
     return options
@@ -143,15 +146,15 @@ def interact_with_options(currentUser):
         # options_to_process = []
         # for i in range(len(options_to_show)):
         #     options_to_process.append(custom_lower(options_to_show[i]))
-        alternative = [(index+1) for index in range(len(options_to_show))]
-        print('\n'.join(f"{num+1}. {option}" for num, option in enumerate(options_to_show)))
+        alternative = [(index + 1) for index in range(len(options_to_show))]
+        print('\n'.join(f"{num + 1}. {option}" for num, option in enumerate(options_to_show)))
         # print(options_to_process)
         choice = custom_lower(input("What would you like to do?\n"))
         if choice in options_to_process:
             index = find_index(full_options, choice)
             check, currentUser = function_call(index, currentUser)
         elif int(choice) in alternative:
-            index = find_index(full_options, options_to_process[int(choice)-1])
+            index = find_index(full_options, options_to_process[int(choice) - 1])
             check, currentUser = function_call(index, currentUser)
         else:
             print("There are no such option")
@@ -220,6 +223,14 @@ def get_user_service_list(currentUser):
     for service in serviceData:
         if service['userHost'] == currentUser['login']:
             service_list.append(service['serviceName'])
+    return service_list
+
+
+def get_service_list():
+    service_list = []
+    serviceData = open_service_data()
+    for service in serviceData:
+        service_list.append(service['serviceName'])
     return service_list
 
 
@@ -356,7 +367,8 @@ def manage_services(currentUser):
             to_process = input("What would you like to do?\nAdd Service\nExit\n")
         else:
             print(f"You are currently providing:\n{'\n'.join(service for service in service_list)}\n")
-            to_process = input("What would you like to do?\n1. Add Service\n2. Update Services\n3. Delete Service\n4. Exit\n")
+            to_process = input(
+                "What would you like to do?\n1. Add Service\n2. Update Services\n3. Delete Service\n4. Exit\n")
         if custom_lower(to_process) == "exit" or to_process == '4':
             break
         elif custom_lower(to_process) == "add service" or to_process == '1':
@@ -377,7 +389,8 @@ def add_service(currentUser):
         lower_destination_list = custom_lower_list(destination_list)
         # print(f"LIST = {lower_destination_list}")
         while True:
-            location_to_associate = input(f"Currently available destinations:\n{'\n'.join(destination for destination in destination_list)}\nExit\n")
+            location_to_associate = input(
+                f"Currently available destinations:\n{'\n'.join(destination for destination in destination_list)}\nExit\n")
             if custom_lower(location_to_associate) == 'exit':
                 new_service["placing"] = 'Not mentioned'
                 break
@@ -408,6 +421,14 @@ def add_service(currentUser):
         serviceData = open_service_data()
         serviceData.append(new_service)
         save_service_data(serviceData)
+        destinationData = open_destination_data()
+        destination_list = get_destination_list()
+        if new_service['placing'] != 'Not mentioned':
+            index = find_index(destination_list, new_service['placing'])
+            destinationData[index]['amenities'][0].append(new_service['serviceName'])
+            destinationData[index]['amenities'][1].append(new_service['schedule'])
+            save_destination_data(destinationData)
+        print(f"Service {new_service['serviceName']} successfully added")
     else:
         print("Service creation cancelled")
 
@@ -418,9 +439,12 @@ def add_service(currentUser):
 def update_service(currentUser):
     while True:
         service_list = get_user_service_list(currentUser)
+        glob_service_list = get_service_list()
+        # I didn't want to redo the whole function from scratch, so I had to do this spaghetti
         if service_list[-1] != 'Exit':
             service_list.append('Exit')
-        print(f"You are currently providing:\n{'\n'.join(f"{num+1}. {service}" for num, service in enumerate(service_list))}\n")
+        print(
+            f"You are currently providing:\n{'\n'.join(f"{num + 1}. {service}" for num, service in enumerate(service_list))}\n")
         to_process = input("Which of your services you would like to update?\n")
         alternative = [str(index + 1) for index in range(len(service_list))]
         if custom_lower(to_process) == 'exit' or int(to_process) == len(service_list):
@@ -428,63 +452,95 @@ def update_service(currentUser):
             break
         elif custom_lower(to_process) in custom_lower_list(service_list):
             index = find_index(custom_lower_list(service_list), custom_lower(to_process))
+            glob_index = find_index(custom_lower_list(glob_service_list), custom_lower(to_process))
         elif to_process in alternative:
             index = int(to_process) - 1
+            glob_index = find_index(custom_lower_list(glob_service_list), custom_lower(service_list[index]))
         else:
             print("There is no such service")
-            index = -1
-        while index != -1:
+            glob_index = -1
+        while glob_index != -1:
+            destinationData = open_destination_data()
+            destination_list = get_destination_list()
             serviceData = open_service_data()
-            print(f"1. Service name: {serviceData[index]['serviceName']}\n"
-                  f"2. Hosted by: {serviceData[index]['userHost']}\n"
-                  f"3. Location: {serviceData[index]['placing']}\n"
-                  f"4. Provided quantity: {serviceData[index]['quantity']}\n"
-                  f"5. Price: {serviceData[index]['price']}\n"
-                  f"6. Schedule: {serviceData[index]['schedule']}\n"
+            if serviceData[glob_index]['placing'] != 'Not mentioned':
+                destination_index_1 = find_index(destination_list, serviceData[glob_index]['placing'])
+                existence_index = find_index(destinationData[destination_index_1]['amenities'][0], serviceData[glob_index]['serviceName'])
+            else:
+                destination_index_1 = -1
+            print(f"1. Service name: {serviceData[glob_index]['serviceName']}\n"
+                  f"2. Hosted by: {serviceData[glob_index]['userHost']}\n"
+                  f"3. Location: {serviceData[glob_index]['placing']}\n"
+                  f"4. Provided quantity: {serviceData[glob_index]['quantity']}\n"
+                  f"5. Price: {serviceData[glob_index]['price']}\n"
+                  f"6. Schedule: {serviceData[glob_index]['schedule']}\n"
                   f"7. Exit")
             to_update = input("Which part you would like to update?\n")
             if custom_lower(to_update) == 'service name' or custom_lower(to_update) == 'name' or to_update == '1':
-                new_name = input(f"Current Service name: {serviceData[index]['serviceName']}\n"
+                new_name = input(f"Current Service name: {serviceData[glob_index]['serviceName']}\n"
                                  f"New Service name: ")
-                serviceData[index]['serviceName'] = new_name
+                serviceData[glob_index]['serviceName'] = new_name
                 save_service_data(serviceData)
+                if destination_index_1 != -1:
+                    destinationData[destination_index_1]['amenities'][0][existence_index] = new_name
+                save_destination_data(destinationData)
                 print("Service update successful")
             elif custom_lower(to_update) == 'hosted by' or to_update == '2':
                 print("You can not update this")
             elif custom_lower(to_update) == 'location' or to_update == '3':
                 destination_list = get_destination_list()
                 destination_list.append('Not mentioned')
-                new_location = input(f"Current Location: {serviceData[index]['placing']}\n"
+                new_location = input(f"Current Location: {serviceData[glob_index]['placing']}\n"
                                      f"Available locations:\n{'\n'.join(destination for destination in destination_list)}\n"
                                      f"New Location: ")
+                if custom_lower(new_location) == 'not mentioned':
+                    new_location = 'Not mentioned'
                 if custom_lower(new_location) in custom_lower_list(destination_list):
-                    serviceData[index]['placing'] = new_location
+                    serviceData[glob_index]['placing'] = new_location
                     save_service_data(serviceData)
+                    if custom_lower(new_location) != 'not mentioned':
+                        destination_index_2 = find_index(destination_list, serviceData[glob_index]['placing'])
+                    else:
+                        destination_index_2 = -1
+                    if destination_index_1 != destination_index_2 and destination_index_2 != -1:
+                        destinationData[destination_index_2]['amenities'][0].append(serviceData[glob_index]['serviceName'])
+                        destinationData[destination_index_2]['amenities'][1].append(serviceData[glob_index]['schedule'])
+                        if destination_index_1 != -1:
+                            del destinationData[destination_index_1]['amenities'][0][existence_index]
+                            del destinationData[destination_index_1]['amenities'][1][existence_index]
+                    else:
+                        del destinationData[destination_index_2]['amenities'][0][existence_index]
+                        del destinationData[destination_index_2]['amenities'][1][existence_index]
+                    save_destination_data(destinationData)
                     print("Service update successful")
                 else:
                     print("There is no such location available")
-            elif custom_lower(to_update) == 'provided quantity' or custom_lower(to_update) == 'quantity' or to_update == '4':
-                new_quantity = input(f"Current Quantity: {serviceData[index]['quantity']}\n"
+            elif custom_lower(to_update) == 'provided quantity' or custom_lower(
+                    to_update) == 'quantity' or to_update == '4':
+                new_quantity = input(f"Current Quantity: {serviceData[glob_index]['quantity']}\n"
                                      f"New Quantity: ")
-                serviceData[index]['quantity'] = new_quantity
+                serviceData[glob_index]['quantity'] = new_quantity
                 save_service_data(serviceData)
                 print("Service update successful")
             elif custom_lower(to_update) == 'price' or to_update == '5':
-                new_price = input(f"Current Price: {serviceData[index]['price']}\n"
+                new_price = input(f"Current Price: {serviceData[glob_index]['price']}\n"
                                   f"New Price: ")
-                serviceData[index]['price'] = new_price
+                serviceData[glob_index]['price'] = new_price
                 save_service_data(serviceData)
                 print("Service update successful")
             elif custom_lower(to_update) == 'schedule' or to_update == '6':
-                new_start_date = input(f"Current schedule: {serviceData[index]['price']}\n"
+                new_start_date = input(f"Current schedule: {serviceData[glob_index]['price']}\n"
                                        f"Type new start date 'Day Month' or 'Continuous': ")
                 if custom_lower(new_start_date) != 'continuous':
                     new_end_date = input("Type new end date 'Day Month' or 'Continuous': ")
                     schedule = f"From {new_start_date} to {new_end_date}"
                 else:
                     schedule = 'continuous'
-                serviceData[index]['schedule'] = schedule
+                serviceData[glob_index]['schedule'] = schedule
                 save_service_data(serviceData)
+                if destination_index_1 != -1:
+                    destinationData[destination_index_1]['amenities'][1][existence_index] = schedule
+                save_destination_data(destinationData)
                 print("Service update successful")
             elif custom_lower(to_update) == 'exit' or to_update == '7':
                 print("Returning to service page...")
@@ -496,9 +552,11 @@ def update_service(currentUser):
 def delete_service(currentUser):
     while True:
         service_list = get_user_service_list(currentUser)
+        glob_service_list = get_service_list()
         if service_list[-1] != 'Exit':
             service_list.append('Exit')
-        print(f"You are currently providing:\n{'\n'.join(f"{num+1}. {service}" for num, service in enumerate(service_list))}\n")
+        print(
+            f"You are currently providing:\n{'\n'.join(f"{num + 1}. {service}" for num, service in enumerate(service_list))}\n")
         to_process = input("Which of your services you would like to delete?\n")
         alternative = [str(index + 1) for index in range(len(service_list))]
         if custom_lower(to_process) == 'exit' or int(to_process) == len(service_list):
@@ -506,18 +564,27 @@ def delete_service(currentUser):
             break
         elif custom_lower(to_process) in custom_lower_list(service_list):
             index = find_index(custom_lower_list(service_list), custom_lower(to_process))
+            glob_index = find_index(custom_lower_list(glob_service_list), custom_lower(to_process))
         elif to_process in alternative:
             index = int(to_process) - 1
+            glob_index = find_index(custom_lower_list(glob_service_list), custom_lower(service_list[index]))
         else:
             print("There is no such service")
-            index = -1
-        if index != -1:
-            confirmation = input(f"Are you sure you want to delete service {service_list[index]}? Yes/No\n")
+            glob_index = -1
+        if glob_index != -1:
+            confirmation = input(f"Are you sure you want to delete service {service_list[glob_index]}? Yes/No\n")
             if custom_lower(confirmation) == "yes" or confirmation == '1':
+                destinationData = open_destination_data()
                 serviceData = open_service_data()
-                del serviceData[index]
+                destination_list = get_destination_list()
+                destination_index = find_index(destination_list, serviceData[glob_index]['placing'])
+                existence_index = find_index(destinationData[destination_index]['amenities'][0], serviceData[glob_index]['serviceName'])
+                del serviceData[glob_index]
+                del destinationData[destination_index]['amenities'][0][existence_index]
+                del destinationData[destination_index]['amenities'][1][existence_index]
                 save_service_data(serviceData)
-                print(f"Service {service_list[index]} deleted successfully")
+                save_destination_data(destinationData)
+                print(f"Service {service_list[glob_index]} deleted successfully")
             else:
                 print("Service deletion cancelling")
 

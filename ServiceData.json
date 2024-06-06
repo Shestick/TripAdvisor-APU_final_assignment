@@ -5,7 +5,7 @@
       "placing": "destination1",
       "quantity": "10",
       "price": "50RYM",
-      "schedule": "From 10 June to 15 june"
+      "schedule": "From 10 June to 15 June"
    },
    {
       "serviceName": "Restaurant",
@@ -14,5 +14,13 @@
       "quantity": "30",
       "price": "85RYM-110RYM",
       "schedule": "From 15 Oct to 28 Nov"
+   },
+   {
+      "serviceName": "testService2",
+      "userHost": "13",
+      "placing": "Not mentioned",
+      "quantity": "55",
+      "price": "20RYM",
+      "schedule": "From 15 Dec to 18 Dec"
    }
 ]

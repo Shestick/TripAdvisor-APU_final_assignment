@@ -28,5 +28,11 @@
       "login": "newUser",
       "password": "test",
       "active": false
+   },
+   {
+      "userType": "Service",
+      "login": "13",
+      "password": "13",
+      "active": true
    }
 ]

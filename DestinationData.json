@@ -1,7 +1,32 @@
 [
    {
       "destinationName": "destination1",
-      "points_of_interest": ["POI_1", "POI_2", "POI_3"],
-      "amenities": [["Accommodation"], ["10June - 15June"]]
+      "points_of_interest": [
+         "POI_1",
+         "POI_2",
+         "POI_3"
+      ],
+      "amenities": [
+         [
+            "Accommodation",
+            "Restaurant"
+         ],
+         [
+            "From 10 June to 15 June",
+            "From 15 Oct to 28 Nov"
+         ]
+      ]
+   },
+   {
+      "destinationName": "destination2",
+      "points_of_interest": [
+         "POI_1.1",
+         "POI_2.1",
+         "POI_3.1"
+      ],
+      "amenities": [
+         [],
+         []
+      ]
    }
 ]
