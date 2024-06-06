@@ -175,7 +175,7 @@ def create_account(currentUser):
             print("You have insufficient access rights")
         elif userType == 'service' or userType == '2':
             newUser['userType'] = 'Service'
-        elif userType == 'traveler' or userType == '3':
+        elif userType == 'traveller' or userType == '3':
             newUser['userType'] = 'Traveller'
         else:
             print("There is no such account type, enter valid option")
