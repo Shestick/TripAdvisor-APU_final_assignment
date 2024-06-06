@@ -362,9 +362,9 @@ def manage_services(currentUser):
         elif custom_lower(to_process) == "add service" or to_process == '1':
             add_service(currentUser)
         elif custom_lower(to_process) == "update service" or to_process == '2':
-            update_service(service_list)
+            update_service(currentUser)
         elif custom_lower(to_process) == "delete service" or to_process == '3':
-            pass
+            delete_service(currentUser)
 
 
 def add_service(currentUser):
@@ -415,8 +415,9 @@ def add_service(currentUser):
 # def update_service_aux()
 
 
-def update_service(service_list):
+def update_service(currentUser):
     while True:
+        service_list = get_user_service_list(currentUser)
         if service_list[-1] != 'Exit':
             service_list.append('Exit')
         print(f"You are currently providing:\n{'\n'.join(f"{num+1}. {service}" for num, service in enumerate(service_list))}\n")
@@ -490,6 +491,36 @@ def update_service(service_list):
                 break
             else:
                 print("This is not a valid option")
+
+
+def delete_service(currentUser):
+    while True:
+        service_list = get_user_service_list(currentUser)
+        if service_list[-1] != 'Exit':
+            service_list.append('Exit')
+        print(f"You are currently providing:\n{'\n'.join(f"{num+1}. {service}" for num, service in enumerate(service_list))}\n")
+        to_process = input("Which of your services you would like to delete?\n")
+        alternative = [str(index + 1) for index in range(len(service_list))]
+        if custom_lower(to_process) == 'exit' or int(to_process) == len(service_list):
+            print("Service update cancelled")
+            break
+        elif custom_lower(to_process) in custom_lower_list(service_list):
+            index = find_index(custom_lower_list(service_list), custom_lower(to_process))
+        elif to_process in alternative:
+            index = int(to_process) - 1
+        else:
+            print("There is no such service")
+            index = -1
+        if index != -1:
+            confirmation = input(f"Are you sure you want to delete service {service_list[index]}? Yes/No\n")
+            if custom_lower(confirmation) == "yes" or confirmation == '1':
+                serviceData = open_service_data()
+                del serviceData[index]
+                save_service_data(serviceData)
+                print(f"Service {service_list[index]} deleted successfully")
+            else:
+                print("Service deletion cancelling")
+
 
 def main():
     currentUser = assign_guest()
