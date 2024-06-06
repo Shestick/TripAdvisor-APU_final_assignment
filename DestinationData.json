@@ -1,0 +1,7 @@
+[
+   {
+      "destinationName": "destination1",
+      "points_of_interest": ["POI_1", "POI_2", "POI_3"],
+      "amenities": [["Accommodation"], ["10June - 15June"]]
+   }
+]

@@ -12,6 +12,13 @@ def custom_lower(input_string):
     return result
 
 
+def custom_lower_list(uncertain_list):
+    lower_list = []
+    for element in uncertain_list:
+        lower_list.append(custom_lower(element))
+    return lower_list
+
+
 def find_index(custom_list, element):
     counter = 0
     for content in custom_list:
@@ -31,6 +38,28 @@ def save_userdata(userData):
         json.dump(userData, file, indent=3)
 
 
+def open_service_data():
+    with open('ServiceData.json', 'r') as file:
+        serviceData = json.load(file)
+        return serviceData
+
+
+def save_service_data(serviceData):
+    with open('ServiceData.json', 'w') as file:
+        json.dump(serviceData, file, indent=3)
+
+
+def open_destination_data():
+    with open('DestinationData.json', 'r') as file:
+        destinationData = json.load(file)
+        return destinationData
+
+
+def save_destination_data(destinationData):
+    with open('DestinationData.json', 'w') as file:
+        json.dump(destinationData, file, indent=3)
+
+
 def assign_guest():
     currentUser = {
         "userType": "Guest",
@@ -46,7 +75,7 @@ def show_options(currentUser):
     if currentUser['userType'] == 'Admin':
         options = ['Log in', 'Log out', 'Block User', 'Unblock User', 'Delete Account', 'Update promotion(in development)', 'Provide trip recommendation(in development)']
     elif currentUser['userType'] == 'Service':
-        options = ['Log in', 'Log out', 'Manage Services(in development)', 'Manage Booking(in development)', 'Delete Account']
+        options = ['Log in', 'Log out', 'Manage Services', 'Manage Booking(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Traveller':
         options = ['Log in', 'Log out', 'Explore Services(in development)', 'Explore Destinations(in development)', 'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Guest':
@@ -88,21 +117,32 @@ def function_call(index, currentUser):
         return 0, currentUser
     elif index == 7:
         return 1, currentUser
+    elif index == 8:
+        manage_services(currentUser)
+        return 0, currentUser
+    elif index == 9:
+        pass
+    elif index == 10:
+        pass
+    elif index == 11:
+        pass
     else:
         print("There are no such option available")
         return 0, currentUser
 
 
 def interact_with_options(currentUser):
-    full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'log out', 'exit']
+    full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'log out', 'exit',
+                    'manage services', 'add service', 'update service', 'delete service']
     while True:
         check = 0
         print(f"\n\nYou are currently logged as {currentUser['userType']}\n"
               f"With your current access rights, you have access to: ")
         options_to_show = show_options(currentUser)
-        options_to_process = []
-        for i in range(len(options_to_show)):
-            options_to_process.append(custom_lower(options_to_show[i]))
+        options_to_process = custom_lower_list(options_to_show)
+        # options_to_process = []
+        # for i in range(len(options_to_show)):
+        #     options_to_process.append(custom_lower(options_to_show[i]))
         alternative = [(index+1) for index in range(len(options_to_show))]
         print('\n'.join(f"{num+1}: {option}" for num, option in enumerate(options_to_show)))
         # print(options_to_process)
@@ -172,6 +212,23 @@ def get_blocked_login_list():
         if not user['active']:
             blocked_login_list.append(user['login'])
     return blocked_login_list
+
+
+def get_user_service_list(currentUser):
+    service_list = []
+    serviceData = open_service_data()
+    for service in serviceData:
+        if service['userHost'] == currentUser['login']:
+            service_list.append(service['serviceName'])
+    return service_list
+
+
+def get_destination_list():
+    destination_list = []
+    destinationData = open_destination_data()
+    for destination in destinationData:
+        destination_list.append(destination['destinationName'])
+    return destination_list
 
 
 def log_in_account(currentUser):
@@ -288,6 +345,78 @@ def delete_account(currentUser):
             del userData[index]
             save_userdata(userData)
             print(f'User {user_to_delete} successfully deleted')
+
+
+def manage_services(currentUser):
+    while True:
+        if currentUser['userType'] != "Service":
+            print("How did you get this option???")
+        service_list = get_user_service_list(currentUser)
+        if service_list == []:
+            to_process = input("What would you like to do?\nAdd Service\nExit\n")
+        else:
+            print(f"You are currently providing:\n{'\n'.join(service for service in service_list)}")
+            to_process = input("What would you like to do?\nAdd Service\nManage Services\nDelete Service\nExit\n")
+        if custom_lower(to_process) == "exit" or to_process == '4':
+            break
+        elif custom_lower(to_process) == "add service" or to_process == '1':
+            add_service(currentUser)
+        elif custom_lower(to_process) == "manage service" or to_process == '2':
+            pass
+        elif custom_lower(to_process) == "delete service" or to_process == '3':
+            pass
+
+
+def add_service(currentUser):
+    new_service = {}
+    new_service['serviceName'] = input("Enter the service's name\n")
+    new_service['userHost'] = currentUser['login']
+    confirmation = input("Do you want to associate your service with a location? Yes/No\n")
+    if custom_lower(confirmation) == 'yes' or confirmation == '1':
+        destination_list = get_destination_list()
+        lower_destination_list = custom_lower_list(destination_list)
+        # print(f"LIST = {lower_destination_list}")
+        while True:
+            location_to_associate = input(f"Currently available destinations:\n{'\n'.join(destination for destination in destination_list)}\nExit\n")
+            if custom_lower(location_to_associate) == 'exit':
+                new_service["placing"] = 'Not mentioned'
+                break
+            elif custom_lower(location_to_associate) in lower_destination_list:
+                new_service["placing"] = location_to_associate
+                break
+            else:
+                print("There are no such location")
+    else:
+        new_service["placing"] = 'Not mentioned'
+    new_service['quantity'] = input("Enter the provided quantity of your service\n")
+    new_service['price'] = input("Enter the price of your service\n")
+    start_date = input("Enter your service start date as 'number month' or 'continuous' if your service is not expiring\n")
+    schedule = [start_date]
+    if schedule[0] != 'continuous':
+        end_date = input("Enter your service end date as 'number month'\n")
+        schedule.append(end_date)
+    else:
+        schedule.append('Not mentioned')
+    new_service['schedule'] = schedule
+    print(f"Service name: {new_service['serviceName']}\n"
+                         f"Hosted by: {new_service['userHost']}\n"
+                         f"Located in/near: {new_service['placing']}\n"
+                         f"Provided quantity: {new_service['quantity']}\n"
+                         f"Price: {new_service['price']}\n", end='')
+    if new_service['schedule'][0] == 'continuous':
+        confirmation = input(f"Schedule: {new_service['schedule'][0]}\n"
+                             f"Do you wish to save current service? Yes/No\n")
+    else:
+        confirmation = input(f"Schedule: From {new_service['schedule'][0]} to {new_service['schedule'][1]}\n"
+                             f"Do you wish to save current service? Yes/No\n")
+    if custom_lower(confirmation) == 'yes' or confirmation == '1':
+        serviceData = open_service_data()
+        serviceData.append(new_service)
+        save_service_data(serviceData)
+    else:
+        print("Service creation cancelled")
+
+
 
 
 def main():

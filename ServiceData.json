@@ -1,0 +1,24 @@
+[
+   {
+      "serviceName": "Accommodation",
+      "userHost": "loginService",
+      "placing": "destination1",
+      "quantity": "10",
+      "price": "50RYM",
+      "schedule": [
+         "10 June",
+         "15 June"
+      ]
+   },
+   {
+      "serviceName": "Restourant",
+      "userHost": "loginService",
+      "placing": "destination1",
+      "quantity": "20",
+      "price": "60-100RYM",
+      "schedule": [
+         "15 Oct",
+         "28 Nov"
+      ]
+   }
+]
