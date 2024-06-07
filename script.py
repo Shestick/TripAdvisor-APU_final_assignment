@@ -80,6 +80,17 @@ def save_recommendation(recommendation):
         json.dump(recommendation, file, indent=3)
 
 
+def open_promotions():
+    with open('Promotions.json', 'r') as file:
+        promotions = json.load(file)
+        return promotions
+
+
+def save_promotions(promotions):
+    with open('Promotions.json', 'w') as file:
+        json.dump(promotions, file, indent=3)
+
+
 def assign_guest():
     currentUser = {
         "userType": "Guest",
@@ -94,15 +105,15 @@ def show_options(currentUser):
     options = []
     if currentUser['userType'] == 'Admin':
         options = ['Log in', 'Log out', 'Sign up', 'Block User', 'Unblock User', 'Delete Account',
-                   'Update promotion(in development)', 'Provide trip recommendation']
+                   'Update promotions', 'Provide trip recommendation']
     elif currentUser['userType'] == 'Service':
         options = ['Log in', 'Log out', 'Sign up', 'Manage Services', 'Manage Booking(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Traveller':
-        options = ['Log in', 'Log out', 'Sign up', 'Explore Services', 'Explore Destinations',
-                   'View recommended', 'Check availability(in development)', 'Delete Account']
+        options = ['Log in', 'Log out', 'Sign up', 'View promotions', 'Explore Services', 'View recommended',
+                   'Explore Destinations', 'Check availability(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Guest':
-        options = ['Log in', 'Sign up', 'Explore Services', 'Explore Destinations',
-                   'View recommended', 'Check availability(in development)', 'Delete Account']
+        options = ['Log in', 'Sign up', 'View promotions', 'Explore Services', 'View recommended',
+                   'Explore Destinations', 'Check availability(in development)', 'Delete Account']
     options.append("Exit")
     # options = custom_lower(options)
     return options
@@ -155,6 +166,12 @@ def function_call(index, currentUser):
     elif index == 12:
         view_recommendation()
         return 0, currentUser
+    elif index == 13:
+        manage_promotions(currentUser)
+        return 0, currentUser
+    elif index == 14:
+        view_promotions()
+        return 0, currentUser
     else:
         print("There are no such option available")
         return 0, currentUser
@@ -162,7 +179,8 @@ def function_call(index, currentUser):
 
 def interact_with_options(currentUser):
     full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'log out', 'exit',
-                    'manage services', 'explore services', 'explore destinations', 'provide trip recommendation', 'view recommended']
+                    'manage services', 'explore services', 'explore destinations', 'provide trip recommendation',
+                    'view recommended', 'update promotions', 'view promotions']
     while True:
         check = 0
         print(f"\n\nYou are currently logged as {currentUser['userType']}\n"
@@ -182,6 +200,7 @@ def interact_with_options(currentUser):
             check, currentUser = function_call(index, currentUser)
         elif choice in alternative:
             index = find_index(full_options, options_to_process[int(choice) - 1])
+            # print(index)
             check, currentUser = function_call(index, currentUser)
         else:
             print("There are no such option")
@@ -716,11 +735,11 @@ def explore_destinations():
 
 
 def manage_recommendation(currentUser):
-    recommendation = open_recommendation()
     destinationData = open_destination_data()
     destination_list = get_destination_list()
     destination_list.append('Exit')
     while True:
+        recommendation = open_recommendation()
         if currentUser['userType'] != "Admin":
             print("How did you get this option???")
         destination_list_aux = custom_enumerate(destination_list)
@@ -775,6 +794,78 @@ def view_recommendation():
             break
 
 
+def manage_promotions(currentUser):
+    while True:
+        promotion_list = open_promotions()
+        if currentUser['userType'] != "Admin":
+            print("How did you get this option???")
+        if promotion_list == []:
+            print("No promotions currently active\n")
+        else:
+            print(f"Current promotions:\n{'\n'.join(promotion for promotion in promotion_list)}\n")
+        to_process = custom_lower(input("What do you want to do\n1. Add promotion\n2. Delete promotion\n3. Exit\n"))
+        if to_process == 'yes' or to_process == '1':
+            while True:
+                new_promotion = input("Type your promotion:\n")
+                confirmation = custom_lower(input("Are you satisfied with the result?\n1. Yes\n2. No\n"))
+                if custom_lower(new_promotion) == 'exit':
+                    print("Returning to promotions screen")
+                    break
+                if confirmation == 'yes' or confirmation == '1':
+                    promotion_list.append(new_promotion)
+                    save_promotions(promotion_list)
+                    print("Promotion added successfully\n")
+                    break
+                elif confirmation == 'no' or confirmation == '2':
+                    print("Promotion creation cancelled\n")
+                else:
+                    print("There is no such option\n")
+        elif to_process == 'no' or to_process == '2':
+            while True:
+                if promotion_list == []:
+                    print("There are no promotions to delete")
+                    break
+                promotion_list_aux = custom_enumerate(promotion_list)
+                print(f"Current promotions:\n{'\n'.join(promotion for promotion in promotion_list_aux)}\nExit\n")
+                aux_list = [str(index+1) for index in range(len(promotion_list))]
+                to_delete = input("Which one do you want to delete?\n")
+                if custom_lower(to_delete) == 'exit' or to_delete == '0':
+                    print("Returning to promotions screen")
+                    break
+                if to_delete in aux_list:
+                    confirmation = custom_lower(input(f"Are you sure you want to delete next promotion:\n{promotion_list[int(to_delete)-1]}\n1. Yes\n2. No\n"))
+                    if confirmation == 'yes' or confirmation == '1':
+                        del promotion_list[int(to_delete)-1]
+                        save_promotions(promotion_list)
+                        print("Promotion successfully deleted")
+                        break
+                    elif confirmation == 'no' or confirmation == '2':
+                        print("Promotion deletion cancelled")
+                    else:
+                        print("There is no such option")
+                else:
+                    print("There is no such option")
+        elif to_process == 'exit' or to_process == '3':
+            print("Returning to options screen")
+            break
+        else:
+            print("There are no such option")
+
+
+def view_promotions():
+    while True:
+        promotion_list = open_promotions()
+        if promotion_list == []:
+            confirmation =input("Unfortunately, there are no available promotions at the moment\nExit")
+            if confirmation == 'exit' or confirmation == '0':
+                print("Returning to options screen")
+                break
+        else:
+            promotion_list_aux = custom_enumerate(promotion_list)
+            confirmation = custom_lower(input(f"Current promotions:\n{'\n'.join(promotion for promotion in promotion_list_aux)}\nExit\n"))
+            if confirmation == 'exit' or confirmation == '0':
+                print("Returning to options screen")
+                break
 
 
 
