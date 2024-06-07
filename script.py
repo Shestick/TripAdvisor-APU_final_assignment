@@ -69,6 +69,17 @@ def save_destination_data(destinationData):
         json.dump(destinationData, file, indent=3)
 
 
+def open_recommendation():
+    with open('Recommendation.json', 'r') as file:
+        recommendation = json.load(file)
+        return recommendation
+
+
+def save_recommendation(recommendation):
+    with open('Recommendation.json', 'w') as file:
+        json.dump(recommendation, file, indent=3)
+
+
 def assign_guest():
     currentUser = {
         "userType": "Guest",
@@ -82,16 +93,16 @@ def assign_guest():
 def show_options(currentUser):
     options = []
     if currentUser['userType'] == 'Admin':
-        options = ['Log in', 'Log out', 'Block User', 'Unblock User', 'Delete Account',
-                   'Update promotion(in development)', 'Provide trip recommendation(in development)']
+        options = ['Log in', 'Log out', 'Sign up', 'Block User', 'Unblock User', 'Delete Account',
+                   'Update promotion(in development)', 'Provide trip recommendation']
     elif currentUser['userType'] == 'Service':
-        options = ['Log in', 'Log out', 'Manage Services', 'Manage Booking(in development)', 'Delete Account']
+        options = ['Log in', 'Log out', 'Sign up', 'Manage Services', 'Manage Booking(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Traveller':
-        options = ['Log in', 'Log out', 'Explore Services', 'Explore Destinations',
-                   'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
+        options = ['Log in', 'Log out', 'Sign up', 'Explore Services', 'Explore Destinations',
+                   'View recommended', 'Check availability(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Guest':
         options = ['Log in', 'Sign up', 'Explore Services', 'Explore Destinations',
-                   'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
+                   'View recommended', 'Check availability(in development)', 'Delete Account']
     options.append("Exit")
     # options = custom_lower(options)
     return options
@@ -139,7 +150,11 @@ def function_call(index, currentUser):
         explore_destinations()
         return 0, currentUser
     elif index == 11:
-        pass
+        manage_recommendation(currentUser)
+        return 0, currentUser
+    elif index == 12:
+        view_recommendation()
+        return 0, currentUser
     else:
         print("There are no such option available")
         return 0, currentUser
@@ -147,7 +162,7 @@ def function_call(index, currentUser):
 
 def interact_with_options(currentUser):
     full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'log out', 'exit',
-                    'manage services', 'explore services', 'explore destinations']
+                    'manage services', 'explore services', 'explore destinations', 'provide trip recommendation', 'view recommended']
     while True:
         check = 0
         print(f"\n\nYou are currently logged as {currentUser['userType']}\n"
@@ -698,6 +713,70 @@ def explore_destinations():
             confirmation = custom_lower(input("Exit\n"))
             if custom_lower(confirmation) == 'exit' or confirmation == '0':
                 break
+
+
+def manage_recommendation(currentUser):
+    recommendation = open_recommendation()
+    destinationData = open_destination_data()
+    destination_list = get_destination_list()
+    destination_list.append('Exit')
+    while True:
+        if currentUser['userType'] != "Admin":
+            print("How did you get this option???")
+        destination_list_aux = custom_enumerate(destination_list)
+        print(f"You are currently recommending: {recommendation[0]}")
+        print(f"Available destinations to recommend:\n{'\n'.join(destination for destination in destination_list_aux)}\n")
+        alternative = [str(index + 1) for index in range(len(destination_list))]
+        to_explore = custom_lower(input("Which one do you want to recommend?\n"))
+        if to_explore == 'exit' or to_explore == alternative[-1]:
+            break
+        elif to_explore in custom_lower_list(destination_list):
+            index = find_index(custom_lower_list(destination_list), to_explore)
+        elif to_explore in alternative:
+            index = int(to_explore) - 1
+        else:
+            index = -1
+        while index != -1:
+            confirmation = custom_lower(input("Do you wish to use default structure?\n1. Yes\n2. No\n3. Exit\n"))
+            if confirmation == 'yes' or confirmation == '1':
+                recommendation[0] = destinationData[index]['destinationName']
+                recommendation[3] = recommendation[1]
+                recommendation[4] = recommendation[2]
+                save_recommendation(recommendation)
+                break
+            elif confirmation == 'no' or confirmation == '2':
+                recommendation[0] = destinationData[index]['destinationName']
+                first_part = input(f"Custom structure:'First part', '{destinationData[index]['destinationName']}', 'Second part'\n"
+                                   f"Enter the first part:\n")
+                second_part = input(f"{first_part} {destinationData[index]['destinationName']} 'Second part'\n"
+                                    f"Enter the second part:\n")
+                confirmation = custom_lower(input(f"{first_part} {destinationData[index]['destinationName']}{second_part}\n"
+                                                  f"Are you satisfied with the result?\n1. Yes\n2. No\n3. Exit\n"))
+                if confirmation == 'yes' or confirmation == '1':
+                    recommendation[3] = first_part
+                    recommendation[4] = second_part
+                    save_recommendation(recommendation)
+                    break
+                elif confirmation == 'no' or confirmation == '2':
+                    print("Recommendation update cancelled")
+                else:
+                    print("This is not a valid option")
+            elif confirmation == 'exit' or confirmation == '3':
+                break
+            else:
+                print("This is not a valid option")
+
+
+def view_recommendation():
+    while True:
+        recommendation = open_recommendation()
+        confirmation = custom_lower(input(f"{recommendation[3]} {recommendation[0]} {recommendation[4]}\nExit\n"))
+        if confirmation == 'exit' or confirmation == '0':
+            break
+
+
+
+
 
 
 

@@ -40,5 +40,11 @@
       "login": "14",
       "password": "14",
       "active": true
+   },
+   {
+      "userType": "Admin",
+      "login": "1",
+      "password": "1",
+      "active": true
    }
 ]
