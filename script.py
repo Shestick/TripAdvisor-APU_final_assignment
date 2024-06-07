@@ -253,6 +253,19 @@ def get_service_list():
     return service_list
 
 
+def get_active_service_list():
+    userData = open_userdata()
+    active_service_list = []
+    serviceData = open_service_data()
+    for service in serviceData:
+        Host = service['userHost']
+        for user in userData:
+            if user['login'] == Host and user['active']:
+                active_service_list.append(service['serviceName'])
+    return active_service_list
+
+
+
 def get_destination_list():
     destination_list = []
     destinationData = open_destination_data()
@@ -625,7 +638,7 @@ def delete_service(currentUser):
 
 def explore_services():
     serviceData = open_service_data()
-    service_list = get_service_list()
+    service_list = get_active_service_list()
     service_list.append('Exit')
     while True:
         service_list_aux = custom_enumerate(service_list)
