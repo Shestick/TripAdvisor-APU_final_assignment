@@ -19,6 +19,15 @@ def custom_lower_list(uncertain_list):
     return lower_list
 
 
+def custom_enumerate(main_list):
+    aux_list = []
+    counter = 1
+    for _ in main_list:
+        aux_list.append(str(counter) + '. ' + main_list[counter - 1])
+        counter += 1
+    return aux_list
+
+
 def find_index(custom_list, element):
     counter = 0
     for content in custom_list:
@@ -78,10 +87,10 @@ def show_options(currentUser):
     elif currentUser['userType'] == 'Service':
         options = ['Log in', 'Log out', 'Manage Services', 'Manage Booking(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Traveller':
-        options = ['Log in', 'Log out', 'Explore Services(in development)', 'Explore Destinations(in development)',
+        options = ['Log in', 'Log out', 'Explore Services', 'Explore Destinations',
                    'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
     elif currentUser['userType'] == 'Guest':
-        options = ['Log in', 'Sign up', 'Explore Services(in development)', 'Explore Destinations(in development)',
+        options = ['Log in', 'Sign up', 'Explore Services', 'Explore Destinations',
                    'View recommended(in development)', 'Check availability(in development)', 'Delete Account']
     options.append("Exit")
     # options = custom_lower(options)
@@ -124,9 +133,11 @@ def function_call(index, currentUser):
         manage_services(currentUser)
         return 0, currentUser
     elif index == 9:
-        pass
+        explore_services()
+        return 0, currentUser
     elif index == 10:
-        pass
+        explore_destinations()
+        return 0, currentUser
     elif index == 11:
         pass
     else:
@@ -136,7 +147,7 @@ def function_call(index, currentUser):
 
 def interact_with_options(currentUser):
     full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'log out', 'exit',
-                    'manage services', 'add service', 'update service', 'delete service']
+                    'manage services', 'explore services', 'explore destinations']
     while True:
         check = 0
         print(f"\n\nYou are currently logged as {currentUser['userType']}\n"
@@ -146,14 +157,15 @@ def interact_with_options(currentUser):
         # options_to_process = []
         # for i in range(len(options_to_show)):
         #     options_to_process.append(custom_lower(options_to_show[i]))
-        alternative = [(index + 1) for index in range(len(options_to_show))]
-        print('\n'.join(f"{num + 1}. {option}" for num, option in enumerate(options_to_show)))
+        alternative = [str(index + 1) for index in range(len(options_to_show))]
+        options_to_show_aux = custom_enumerate(options_to_show)
+        print('\n'.join(option for option in options_to_show_aux))
         # print(options_to_process)
         choice = custom_lower(input("What would you like to do?\n"))
         if choice in options_to_process:
             index = find_index(full_options, choice)
             check, currentUser = function_call(index, currentUser)
-        elif int(choice) in alternative:
+        elif choice in alternative:
             index = find_index(full_options, options_to_process[int(choice) - 1])
             check, currentUser = function_call(index, currentUser)
         else:
@@ -179,7 +191,14 @@ def create_account(currentUser):
             newUser['userType'] = 'Traveller'
         else:
             print("There is no such account type, enter valid option")
-    newUser['login'] = input("Please, set your login: ")
+    while True:
+        login = input("Please, set your login: ")
+        login_list = get_login_list()
+        if login in login_list:
+            print(f"User {login} already exist, choose another login")
+        else:
+            newUser['login'] = login
+            break
     while True:
         password_set = input("Please, set your password: ")
         password_confirmation = input("Please, confirm your password: ")
@@ -381,7 +400,14 @@ def manage_services(currentUser):
 
 def add_service(currentUser):
     new_service = {}
-    new_service['serviceName'] = input("Enter the service's name\n")
+    while True:
+        service_list = get_service_list()
+        service_name = input("Enter the service's name\n")
+        if service_name in service_list:
+            print(f"Service {service_name} already exist, choose another name")
+        else:
+            new_service['serviceName'] = service_name
+            break
     new_service['userHost'] = currentUser['login']
     confirmation = input("Do you want to associate your service with a location? Yes/No\n")
     if custom_lower(confirmation) == 'yes' or confirmation == '1':
@@ -395,7 +421,8 @@ def add_service(currentUser):
                 new_service["placing"] = 'Not mentioned'
                 break
             elif custom_lower(location_to_associate) in lower_destination_list:
-                new_service["placing"] = location_to_associate
+                inside_index = find_index(lower_destination_list, custom_lower(location_to_associate))
+                new_service["placing"] = destination_list[inside_index]
                 break
             else:
                 print("There are no such location")
@@ -443,8 +470,8 @@ def update_service(currentUser):
         # I didn't want to redo the whole function from scratch, so I had to do this spaghetti
         if service_list[-1] != 'Exit':
             service_list.append('Exit')
-        print(
-            f"You are currently providing:\n{'\n'.join(f"{num + 1}. {service}" for num, service in enumerate(service_list))}\n")
+        service_list_aux = custom_enumerate(service_list)
+        print(f"You are currently providing:\n{'\n'.join(service for service in service_list_aux)}\n")
         to_process = input("Which of your services you would like to update?\n")
         alternative = [str(index + 1) for index in range(len(service_list))]
         if custom_lower(to_process) == 'exit' or int(to_process) == len(service_list):
@@ -477,9 +504,16 @@ def update_service(currentUser):
                   f"7. Exit")
             to_update = input("Which part you would like to update?\n")
             if custom_lower(to_update) == 'service name' or custom_lower(to_update) == 'name' or to_update == '1':
-                new_name = input(f"Current Service name: {serviceData[glob_index]['serviceName']}\n"
-                                 f"New Service name: ")
-                serviceData[glob_index]['serviceName'] = new_name
+                while True:
+                    service_list = get_service_list()
+                    new_name = input(f"Current Service name: {serviceData[glob_index]['serviceName']}\n"
+                                     f"New Service name: ")
+                    if new_name in service_list:
+                        print(f"Service {new_name} already exist, choose another name")
+                    else:
+                        serviceData[glob_index]['serviceName'] = new_name
+                        break
+                # serviceData[glob_index]['serviceName'] = new_name
                 save_service_data(serviceData)
                 if destination_index_1 != -1:
                     destinationData[destination_index_1]['amenities'][0][existence_index] = new_name
@@ -555,8 +589,8 @@ def delete_service(currentUser):
         glob_service_list = get_service_list()
         if service_list[-1] != 'Exit':
             service_list.append('Exit')
-        print(
-            f"You are currently providing:\n{'\n'.join(f"{num + 1}. {service}" for num, service in enumerate(service_list))}\n")
+        service_list_aux = custom_enumerate(service_list)
+        print(f"You are currently providing:\n{'\n'.join(service for service in service_list_aux)}\n")
         to_process = input("Which of your services you would like to delete?\n")
         alternative = [str(index + 1) for index in range(len(service_list))]
         if custom_lower(to_process) == 'exit' or int(to_process) == len(service_list):
@@ -587,6 +621,71 @@ def delete_service(currentUser):
                 print(f"Service {service_list[glob_index]} deleted successfully")
             else:
                 print("Service deletion cancelling")
+
+
+def explore_services():
+    serviceData = open_service_data()
+    service_list = get_service_list()
+    service_list.append('Exit')
+    while True:
+        service_list_aux = custom_enumerate(service_list)
+        print(f"Available services:\n{'\n'.join(service for service in service_list_aux)}\n")
+        # f"You are currently providing:\n{'\n'.join(f"{num + 1}. {service}" for num, service in enumerate(service_list))}\n"
+        alternative = [str(index + 1) for index in range(len(service_list))]
+        to_explore = custom_lower(input("Which one do you want to explore?\n"))
+        if to_explore == 'exit' or to_explore == alternative[-1]:
+            break
+        elif to_explore in custom_lower_list(service_list):
+            index = find_index(custom_lower_list(service_list), to_explore)
+        elif to_explore in alternative:
+            index = int(to_explore) - 1
+        else:
+            index = -1
+            print("There is no such service")
+        while index != -1:
+            print(f"1. Service name: {serviceData[index]['serviceName']}\n"
+                  f"2. Hosted by: {serviceData[index]['userHost']}\n"
+                  f"3. Location: {serviceData[index]['placing']}\n"
+                  f"4. Provided quantity: {serviceData[index]['quantity']}\n"
+                  f"5. Price: {serviceData[index]['price']}\n"
+                  f"6. Schedule: {serviceData[index]['schedule']}\n")
+            confirmation = custom_lower(input("Exit\n"))
+            if custom_lower(confirmation) == 'exit' or confirmation == '0':
+                break
+
+
+def explore_destinations():
+    destinationData = open_destination_data()
+    destination_list = get_destination_list()
+    destination_list.append('Exit')
+    while True:
+        destination_list_aux = custom_enumerate(destination_list)
+        print(f"Available destinations:\n{'\n'.join(destination for destination in destination_list_aux)}\n")
+        alternative = [str(index + 1) for index in range(len(destination_list))]
+        to_explore = custom_lower(input("Which one do you want to know more about?\n"))
+        if to_explore == 'exit' or to_explore == alternative[-1]:
+            break
+        elif to_explore in custom_lower_list(destination_list):
+            index = find_index(custom_lower_list(destination_list), to_explore)
+        elif to_explore in alternative:
+            index = int(to_explore) - 1
+        else:
+            index = -1
+        while index != -1:
+            print(f"Title: {destinationData[index]['destinationName']}\n"
+                  f"Points of interest: {', '.join(POI for POI in destinationData[index]['points of interest'])}")
+            if destinationData[index]['amenities'] == [[], []]:
+                print("Amenities: Unfortunately, no amenities available at this point")
+            else:
+                tmp_list = []
+                for tmp in range(len(destinationData[index]['amenities'][0])):
+                    tmp_list.append(destinationData[index]['amenities'][0][tmp] + ': ' + destinationData[index]['amenities'][1][tmp])
+                    tmp_list_aux = custom_enumerate(tmp_list)
+                print(f"Amenities:\n{'\n'.join(amenity for amenity in tmp_list_aux)}")
+            confirmation = custom_lower(input("Exit\n"))
+            if custom_lower(confirmation) == 'exit' or confirmation == '0':
+                break
+
 
 
 def main():

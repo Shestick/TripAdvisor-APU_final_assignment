@@ -27,12 +27,18 @@
       "userType": "Traveller",
       "login": "newUser",
       "password": "test",
-      "active": false
+      "active": true
    },
    {
       "userType": "Service",
       "login": "13",
       "password": "13",
+      "active": false
+   },
+   {
+      "userType": "Service",
+      "login": "14",
+      "password": "14",
       "active": true
    }
 ]

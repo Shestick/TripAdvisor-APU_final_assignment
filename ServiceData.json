@@ -2,7 +2,7 @@
    {
       "serviceName": "Accommodation",
       "userHost": "loginService",
-      "placing": "destination1",
+      "placing": "Petronas Twin Towers",
       "quantity": "10",
       "price": "50RYM",
       "schedule": "From 10 June to 15 June"
@@ -10,7 +10,7 @@
    {
       "serviceName": "Restaurant",
       "userHost": "loginService",
-      "placing": "destination1",
+      "placing": "Petronas Twin Towers",
       "quantity": "30",
       "price": "85RYM-110RYM",
       "schedule": "From 15 Oct to 28 Nov"
@@ -22,5 +22,21 @@
       "quantity": "55",
       "price": "20RYM",
       "schedule": "From 15 Dec to 18 Dec"
+   },
+   {
+      "serviceName": "Hostel",
+      "userHost": "14",
+      "placing": "Merdeka square",
+      "quantity": "20",
+      "price": "100RYM-120RYM",
+      "schedule": "Continuous"
+   },
+   {
+      "serviceName": "Kopitiam",
+      "userHost": "14",
+      "placing": "Bukit Bintang",
+      "quantity": "20",
+      "price": "100RYM-120RYM",
+      "schedule": "Continuous"
    }
 ]

@@ -1,10 +1,10 @@
 [
    {
-      "destinationName": "destination1",
-      "points_of_interest": [
-         "POI_1",
-         "POI_2",
-         "POI_3"
+      "destinationName": "Petronas Twin Towers",
+      "points of interest": [
+         "Suria KLCC shopping mall",
+         "Skybridge",
+         "KLCC Park"
       ],
       "amenities": [
          [
@@ -18,15 +18,47 @@
       ]
    },
    {
-      "destinationName": "destination2",
-      "points_of_interest": [
-         "POI_1.1",
-         "POI_2.1",
-         "POI_3.1"
+      "destinationName": "Batu Caves",
+      "points of interest": [
+         "Temple Cave",
+         "Dark Cave",
+         "Ramayana Cave"
       ],
       "amenities": [
          [],
          []
+      ]
+   },
+   {
+      "destinationName": "Merdeka Square",
+      "points of interest": [
+         "Sultan Abdul Samad Building",
+         "National History Museum",
+         "Royal Selangor Club"
+      ],
+      "amenities": [
+         [
+            "Hostel"
+         ],
+         [
+            "Continuous"
+         ]
+      ]
+   },
+   {
+      "destinationName": "Bukit Bintang",
+      "points of interest": [
+         "Pavilion Kuala Lumpur",
+         "Jalan Alor street food market",
+         "Nightlife district"
+      ],
+      "amenities": [
+         [
+            "Kopitiam"
+         ],
+         [
+            "Continuous"
+         ]
       ]
    }
 ]
