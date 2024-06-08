@@ -15,7 +15,9 @@
       "userType": "Traveller",
       "login": "loginTraveller",
       "password": "passwordTraveller",
-      "active": true
+      "active": true,
+      "booking": [],
+      "path": []
    },
    {
       "userType": "Guest",
@@ -30,7 +32,8 @@
       "active": true,
       "booking": [
          "Accommodation"
-      ]
+      ],
+      "path": []
    },
    {
       "userType": "Service",
@@ -58,6 +61,11 @@
       "booking": [
          "Accommodation",
          "Kopitiam"
+      ],
+      "path": [
+         "Merdeka Square",
+         "Petronas Twin Towers",
+         "Bukit Bintang"
       ]
    }
 ]

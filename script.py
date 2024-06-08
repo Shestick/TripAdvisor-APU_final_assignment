@@ -110,7 +110,7 @@ def show_options(currentUser):
         options = ['Log in', 'Log out', 'Sign up', 'Manage Services', 'Manage Booking', 'Delete Account']
     elif currentUser['userType'] == 'Traveller':
         options = ['Log in', 'Log out', 'Sign up', 'View promotions', 'Explore Services', 'View recommended',
-                   'Explore Destinations', 'Manage Booking', 'Delete Account']
+                   'Explore Destinations', 'Plan my trip', 'Manage Booking', 'Delete Account']
     elif currentUser['userType'] == 'Guest':
         options = ['Log in', 'Sign up', 'View promotions', 'Explore Services', 'View recommended',
                    'Explore Destinations']
@@ -175,6 +175,9 @@ def function_call(index, currentUser):
     elif index == 15:
         currentUser = manage_booking(currentUser)
         return 0, currentUser
+    elif index == 16:
+        plan_my_trip(currentUser)
+        return 0, currentUser
     else:
         print("There are no such option available")
         return 0, currentUser
@@ -183,7 +186,7 @@ def function_call(index, currentUser):
 def interact_with_options(currentUser):
     full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'log out', 'exit',
                     'manage services', 'explore services', 'explore destinations', 'provide trip recommendation',
-                    'view recommended', 'update promotions', 'view promotions', 'manage booking']
+                    'view recommended', 'update promotions', 'view promotions', 'manage booking', 'plan my trip']
     while True:
         check = 0
         print(f"\n\nYou are currently logged as {currentUser['userType']}\n"
@@ -247,6 +250,7 @@ def create_account(currentUser):
     newUser['active'] = True
     if newUser['userType'] == 'Traveller':
         newUser['booking'] = []
+        newUser['path'] = []
     userData.append(newUser)
     save_userdata(userData)
 
@@ -1050,6 +1054,105 @@ def manage_booking(currentUser):
     else:
         print("How did you get this option???")
     return currentUser
+
+
+def plan_my_trip(currentUser):
+    # print(currentUser)
+    if currentUser['userType'] != 'Traveller':
+        print("How did you get this option???")
+    if currentUser['path'] == []:
+        while True:
+            confirmation = custom_lower(input("1. Create a plan for my trip\n0. Exit\n"))
+            if confirmation == 'create a plan for my trip' or confirmation == '1':
+                create_path(currentUser)
+            elif confirmation == 'exit' or confirmation == '0':
+                print("Returning to main menu")
+                break
+            else:
+                print("There is no such option")
+    else:
+        while True:
+            confirmation = custom_lower(input("1. Create a new plan for my trip\n2. Check existing plan\n0. Exit\n"))
+            if confirmation == 'create a plan for my trip' or confirmation == '1':
+                create_path(currentUser)
+            elif confirmation == 'check existing plan' or confirmation == '2':
+                plan_aux = custom_enumerate(currentUser['path'])
+                while True:
+                    confirmation = custom_lower(input(f"Your current lan for the trip:\n{'\n'.join(place for place in plan_aux)}\n0. Exit\n"))
+                    if confirmation == 'exit' or confirmation == '0':
+                        break
+                    else:
+                        print("There is no such option")
+            elif confirmation == 'exit' or confirmation == '0':
+                print("Returning to main menu")
+                break
+            else:
+                print("There is no such option")
+
+
+def create_path(currentUser):
+    backup_path = currentUser['path'].copy()
+    currentUser['path'] = []
+    userData = open_userdata()
+    # serviceData = open_service_data()
+    # destinationData = open_destination_data()
+    destination_list = get_destination_list()
+    destination_list_aux = custom_enumerate(destination_list)
+    left_destination_list = destination_list.copy()
+    lower_destination_list = custom_lower_list(destination_list)
+    left_lower_destination_list = custom_lower_list(destination_list)
+    while True:
+        destination_list_tmp = currentUser['path']
+        # print(destination_list_tmp)
+        destination_list_tmp_aux = custom_enumerate(destination_list_tmp)
+        left_destination_list_aux = custom_enumerate(left_destination_list)
+        print(f"Your current path:\n{'\n'.join(place for place in destination_list_tmp_aux)}")
+        if currentUser['path'] == []:
+            confirmation = custom_lower(input(f"{'-'*20}\n{'\n'.join(place for place in left_destination_list_aux)}\n0. Exit\nWhich place do you want to visit first?\n"))
+        else:
+            confirmation = custom_lower(input(f"{'-'*20}\n{'\n'.join(place for place in left_destination_list_aux)}\n-1. Exit\n0. Save and Exit\nWhich place do you want to visit next?\n"))
+        alternative = [str(index+1) for index in range(len(left_destination_list_aux))]
+        if confirmation in left_lower_destination_list:
+            left_index = find_index(left_lower_destination_list, confirmation)
+            index = find_index(lower_destination_list, confirmation)
+            currentUser['path'].append(destination_list[index])
+            del left_lower_destination_list[left_index]
+            del left_destination_list[left_index]
+        elif confirmation in alternative:
+            left_index = int(confirmation) - 1
+            index = find_index(lower_destination_list, left_lower_destination_list[left_index])
+            # print(destination_list)
+            # print(index)
+            currentUser['path'].append(destination_list[index])
+            del left_lower_destination_list[left_index]
+            del left_destination_list[left_index]
+        elif confirmation == 'exit' or confirmation == '-1':
+            # while True:
+            confirmation = custom_lower(input("Are you sure you want to discard changes and exit?\n1. Yes\n2. No\n"))
+            if confirmation == 'yes' or confirmation == '1':
+                print("Returning to planning screen")
+                currentUser['path'] = backup_path
+                break
+            elif confirmation == 'no' or confirmation == '2':
+                print("Discarding changes cancelled")
+            else:
+                print("There is no such option")
+        elif confirmation == 'save and exit' or confirmation == '0':
+            # while True:
+            confirmation = custom_lower(input("Are you sure you want to save changes and exit?\n1. Yes\n2. No\n"))
+            if confirmation == 'yes' or confirmation == '1':
+                print("New plan set successfully")
+                break
+            elif confirmation == 'no' or confirmation == '2':
+                print("Saving cancelled")
+            else:
+                print("There is no such option")
+        else:
+            print("There is no such option")
+    login_list = get_login_list()
+    index = find_index(login_list, currentUser['login'])
+    userData[index]['path'] = currentUser['path']
+    save_userdata(userData)
 
 
 def main():
