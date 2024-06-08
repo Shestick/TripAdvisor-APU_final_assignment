@@ -27,7 +27,10 @@
       "userType": "Traveller",
       "login": "newUser",
       "password": "test",
-      "active": true
+      "active": true,
+      "booking": [
+         "Accommodation"
+      ]
    },
    {
       "userType": "Service",
@@ -46,5 +49,15 @@
       "login": "1",
       "password": "1",
       "active": true
+   },
+   {
+      "userType": "Traveller",
+      "login": "2",
+      "password": "2",
+      "active": true,
+      "booking": [
+         "Accommodation",
+         "Kopitiam"
+      ]
    }
 ]

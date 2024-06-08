@@ -107,13 +107,13 @@ def show_options(currentUser):
         options = ['Log in', 'Log out', 'Sign up', 'Block User', 'Unblock User', 'Delete Account',
                    'Update promotions', 'Provide trip recommendation']
     elif currentUser['userType'] == 'Service':
-        options = ['Log in', 'Log out', 'Sign up', 'Manage Services', 'Manage Booking(in development)', 'Delete Account']
+        options = ['Log in', 'Log out', 'Sign up', 'Manage Services', 'Manage Booking', 'Delete Account']
     elif currentUser['userType'] == 'Traveller':
         options = ['Log in', 'Log out', 'Sign up', 'View promotions', 'Explore Services', 'View recommended',
-                   'Explore Destinations', 'Check availability(in development)', 'Delete Account']
+                   'Explore Destinations', 'Manage Booking', 'Delete Account']
     elif currentUser['userType'] == 'Guest':
         options = ['Log in', 'Sign up', 'View promotions', 'Explore Services', 'View recommended',
-                   'Explore Destinations', 'Check availability(in development)', 'Delete Account']
+                   'Explore Destinations']
     options.append("Exit")
     # options = custom_lower(options)
     return options
@@ -155,7 +155,7 @@ def function_call(index, currentUser):
         manage_services(currentUser)
         return 0, currentUser
     elif index == 9:
-        explore_services()
+        currentUser = explore_services(currentUser)
         return 0, currentUser
     elif index == 10:
         explore_destinations()
@@ -172,6 +172,9 @@ def function_call(index, currentUser):
     elif index == 14:
         view_promotions()
         return 0, currentUser
+    elif index == 15:
+        currentUser = manage_booking(currentUser)
+        return 0, currentUser
     else:
         print("There are no such option available")
         return 0, currentUser
@@ -180,7 +183,7 @@ def function_call(index, currentUser):
 def interact_with_options(currentUser):
     full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'log out', 'exit',
                     'manage services', 'explore services', 'explore destinations', 'provide trip recommendation',
-                    'view recommended', 'update promotions', 'view promotions']
+                    'view recommended', 'update promotions', 'view promotions', 'manage booking']
     while True:
         check = 0
         print(f"\n\nYou are currently logged as {currentUser['userType']}\n"
@@ -242,6 +245,8 @@ def create_account(currentUser):
         else:
             print("Passwords do not match")
     newUser['active'] = True
+    if newUser['userType'] == 'Traveller':
+        newUser['booking'] = []
     userData.append(newUser)
     save_userdata(userData)
 
@@ -299,13 +304,24 @@ def get_active_service_list():
     return active_service_list
 
 
-
 def get_destination_list():
     destination_list = []
     destinationData = open_destination_data()
     for destination in destinationData:
         destination_list.append(destination['destinationName'])
     return destination_list
+
+
+def cancel_users_booking(user):
+    serviceData = open_service_data()
+    userData = open_userdata()
+    user['booking'] = []
+    for service in serviceData:
+        if user['login'] in service['booking']:
+            index = find_index(service['booking'], user['login'])
+            del service['booking'][index]
+    save_service_data(serviceData)
+    save_userdata(userData)
 
 
 def log_in_account(currentUser):
@@ -354,6 +370,7 @@ def block_account(currentUser):
                 index = find_index(login_list, user_to_block)
                 userData = open_userdata()
                 userData[index]['active'] = False
+                cancel_users_booking(userData[index])
                 save_userdata(userData)
                 print(f"User {user_to_block} successfully blocked")
         elif user_to_block in active_users and user_to_block == currentUser['login']:
@@ -407,6 +424,7 @@ def delete_account(currentUser):
             confirmation = custom_lower(input(f"Are you sure you want to delete user {user_to_delete}? Yes/No\n"))
             if custom_lower(confirmation) == 'yes' or custom_lower(confirmation) == '1':
                 index = find_index(login_list, user_to_delete)
+                cancel_users_booking(userData[index])
                 del userData[index]
                 save_userdata(userData)
                 print(f'User {user_to_delete} successfully deleted')
@@ -484,6 +502,7 @@ def add_service(currentUser):
     else:
         schedule = 'Continuous'
     new_service['schedule'] = schedule
+    new_service['booking'] = []
     print(f"Service name: {new_service['serviceName']}\n"
           f"Hosted by: {new_service['userHost']}\n"
           f"Location: {new_service['placing']}\n"
@@ -670,35 +689,74 @@ def delete_service(currentUser):
                 print("Service deletion cancelling")
 
 
-def explore_services():
+def explore_services(currentUser):
     serviceData = open_service_data()
-    service_list = get_active_service_list()
-    service_list.append('Exit')
+    active_service_list = get_active_service_list()
+    service_list = get_service_list()
+    active_service_list.append('Exit')
+    userData = open_userdata()
+    login_list = get_login_list()
+    user_data_index = find_index(login_list, currentUser['login'])
     while True:
-        service_list_aux = custom_enumerate(service_list)
+        service_list_aux = custom_enumerate(active_service_list)
         print(f"Available services:\n{'\n'.join(service for service in service_list_aux)}\n")
         # f"You are currently providing:\n{'\n'.join(f"{num + 1}. {service}" for num, service in enumerate(service_list))}\n"
-        alternative = [str(index + 1) for index in range(len(service_list))]
+        alternative = [str(index + 1) for index in range(len(active_service_list))]
         to_explore = custom_lower(input("Which one do you want to explore?\n"))
         if to_explore == 'exit' or to_explore == alternative[-1]:
             break
-        elif to_explore in custom_lower_list(service_list):
+        elif to_explore in custom_lower_list(active_service_list):
             index = find_index(custom_lower_list(service_list), to_explore)
         elif to_explore in alternative:
-            index = int(to_explore) - 1
+            index = find_index(service_list, active_service_list[int(to_explore) - 1])
         else:
             index = -1
             print("There is no such service")
         while index != -1:
-            print(f"1. Service name: {serviceData[index]['serviceName']}\n"
-                  f"2. Hosted by: {serviceData[index]['userHost']}\n"
-                  f"3. Location: {serviceData[index]['placing']}\n"
-                  f"4. Provided quantity: {serviceData[index]['quantity']}\n"
-                  f"5. Price: {serviceData[index]['price']}\n"
-                  f"6. Schedule: {serviceData[index]['schedule']}\n")
-            confirmation = custom_lower(input("Exit\n"))
-            if custom_lower(confirmation) == 'exit' or confirmation == '0':
-                break
+            print(f"Service name: {serviceData[index]['serviceName']}\n"
+                  f"Hosted by: {serviceData[index]['userHost']}\n"
+                  f"Location: {serviceData[index]['placing']}\n"
+                  f"Provided quantity: {int(serviceData[index]['quantity'])-len(serviceData[index]['booking'])}\n"
+                  f"Price: {serviceData[index]['price']}\n"
+                  f"Schedule: {serviceData[index]['schedule']}\n")
+            if currentUser['userType'] == 'Traveller' and currentUser['login'] not in serviceData[index]['booking']:
+                confirmation = custom_lower(input("1. Book\n2. Exit\n"))
+                if confirmation == 'exit' or confirmation == '2':
+                    break
+                elif (confirmation == 'book' or confirmation == '1') and int(serviceData[index]['quantity'])-len(serviceData[index]['booking']) > 0:
+                    confirmation = custom_lower(input("Do you wish to book that service?\n1. Yes\n2. No\n"))
+                    if confirmation == 'no' or confirmation == '2':
+                        print("Booking process cancelled")
+                    elif confirmation == 'yes' or confirmation == '1':
+                        serviceData[index]['booking'].append(currentUser['login'])
+                        userData[user_data_index]["booking"].append(serviceData[index]['serviceName'])
+                        save_service_data(serviceData)
+                        save_userdata(userData)
+                        print(f"{serviceData[index]['serviceName']} booked successfully")
+                        break
+            elif currentUser['userType'] == 'Traveller' and currentUser['login'] in serviceData[index]['booking']:
+                confirmation = custom_lower(input("1. Cancel Booking\n2. Exit\n"))
+                if confirmation == 'exit' or confirmation == '2':
+                    break
+                elif confirmation == 'cancel booking' or confirmation == '1':
+                    confirmation = custom_lower(input("Do you wish to cancel your booking?\n1. Yes\n2. No\n"))
+                    if confirmation == 'no' or confirmation == '2':
+                        print("Booking cancellation interrupted")
+                    elif confirmation == 'yes' or confirmation == '1':
+                        booking_index = find_index(serviceData[index]['booking'], currentUser['login'])
+                        del serviceData[index]['booking'][booking_index]
+                        user_index = find_index(userData[user_data_index]['booking'], serviceData[index]['serviceName'])
+                        del userData[user_data_index]["booking"][user_index]
+                        save_service_data(serviceData)
+                        save_userdata(userData)
+                        print(f"Booking of {serviceData[index]['serviceName']} cancelled successfully")
+                        break
+            else:
+                confirmation = custom_lower(input("0. Exit\n"))
+                if custom_lower(confirmation) == 'exit' or confirmation == '0':
+                    break
+    currentUser = userData[user_data_index]
+    return currentUser
 
 
 def explore_destinations():
@@ -868,6 +926,130 @@ def view_promotions():
                 break
 
 
+def manage_booking(currentUser):
+    userData = open_userdata()
+    serviceData = open_service_data()
+    service_list = get_service_list()
+    lower_service_list = custom_lower_list(service_list)
+    login_list = get_login_list()
+    user_data_index = find_index(login_list, currentUser['login'])
+    if currentUser['userType'] == 'Traveller':
+        while True:
+            if currentUser['booking'] == []:
+                confirmation = custom_lower(input("You don't have anything booked at this moment\n0. Exit"))
+                if confirmation == 'exit' or confirmation == '0':
+                    print("Returning to options screen")
+                    break
+            else:
+                booking_list_aux = custom_enumerate(currentUser['booking'])
+                alternative = [str(index+1) for index in range(len(currentUser['booking']))]
+                confirmation = custom_lower(input(f"{'\n'.join(booking for booking in booking_list_aux)}\n0. Exit\n"))
+                if confirmation == 'exit' or confirmation == '0':
+                    print("Returning to options screen")
+                    break
+                elif confirmation in lower_service_list:
+                    index = find_index(lower_service_list, confirmation)
+                elif confirmation in alternative:
+                    index = find_index(service_list, currentUser['booking'][int(confirmation) - 1])
+                    # print(f"index: {index}"
+                    #       f"service list: {service_list}"
+                    #       f"booking selected: {currentUser['booking'][int(confirmation) - 1]}")
+                else:
+                    print("There is no such option")
+                    index = -1
+                while index != -1:
+                    print(f"Service name: {serviceData[index]['serviceName']}\n"
+                          f"Hosted by: {serviceData[index]['userHost']}\n"
+                          f"Location: {serviceData[index]['placing']}\n"
+                          f"Provided quantity: {int(serviceData[index]['quantity']) - len(serviceData[index]['booking'])}\n"
+                          f"Price: {serviceData[index]['price']}\n"
+                          f"Schedule: {serviceData[index]['schedule']}\n")
+                    confirmation = custom_lower(input("1. Cancel Booking\n2. Exit\n"))
+                    if confirmation == 'exit' or confirmation == '2':
+                        break
+                    elif confirmation == 'cancel booking' or confirmation == '1':
+                        confirmation = custom_lower(input("Do you wish to cancel your booking?\n1. Yes\n2. No\n"))
+                        if confirmation == 'no' or confirmation == '2':
+                            print("Booking cancellation interrupted")
+                        elif confirmation == 'yes' or confirmation == '1':
+                            booking_index = find_index(serviceData[index]['booking'], currentUser['login'])
+                            del serviceData[index]['booking'][booking_index]
+                            user_index = find_index(userData[user_data_index]['booking'],
+                                                    serviceData[index]['serviceName'])
+                            del userData[user_data_index]["booking"][user_index]
+                            save_service_data(serviceData)
+                            save_userdata(userData)
+                            currentUser = userData[user_data_index]
+                            print(f"Booking of {serviceData[index]['serviceName']} cancelled successfully")
+                            break
+    elif currentUser['userType'] == 'Service':
+        while True:
+            users_list = get_login_list()
+            lower_users_list = custom_lower_list(users_list)
+            user_service_list = get_user_service_list(currentUser)
+            if user_service_list == []:
+                confirmation = input("You do not currently provide any services to book\n0. Exit\n")
+                if confirmation == 'exit' or confirmation == '0':
+                    print("Returning to options screen")
+                    break
+                else:
+                    print("This is not a valid option")
+            else:
+                lower_user_service_list = custom_lower_list(user_service_list)
+                user_service_list_aux = custom_enumerate(user_service_list)
+                confirmation = custom_lower(input(f"{'\n'.join(service for service in user_service_list_aux)}\n0. Exit\n"))
+                alternative = [str(index + 1) for index in range(len(user_service_list))]
+                if confirmation == 'exit' or confirmation == '0':
+                    print("Returning to options screen")
+                    break
+                elif confirmation in lower_user_service_list:
+                    index = find_index(lower_service_list, confirmation)
+                elif confirmation in alternative:
+                    index = find_index(service_list, user_service_list[int(confirmation) - 1])
+                else:
+                    print("There is no such option")
+                    index = -1
+                while index != -1:
+                    booked_users_list = serviceData[index]['booking']
+                    if booked_users_list == []:
+                        print("This service has not got any bookings at this moment")
+                    else:
+                        booked_users_list_aux = custom_enumerate(booked_users_list)
+                        lower_booked_users_list = custom_lower_list(booked_users_list)
+                        print(f"Service name: {serviceData[index]['serviceName']}\n"
+                              f"Booked by:\n{'\n'.join(user for user in booked_users_list_aux)}\n0. Exit\n")
+                        confirmation = custom_lower(input("Which booking you would like to cancel?\n"))
+                        alternative = [str(index + 1) for index in range(len(booked_users_list))]
+                        if confirmation == 'exit' or confirmation == '0':
+                            print("Returning to service screen")
+                            break
+                        elif confirmation in lower_booked_users_list:
+                            booked_index = find_index(lower_users_list, confirmation)
+                        elif confirmation in alternative:
+                            booked_index = find_index(users_list, booked_users_list[int(confirmation)-1])
+                        else:
+                            booked_index = -1
+                        while booked_index != -1:
+                            confirmation = custom_lower(input(f"Are you sure you want to cancel following booking:\n"
+                                                              f"Service: {serviceData[index]['serviceName']}\n"
+                                                              f"User: {userData[booked_index]['login']}\n1. Yes\n2. No\n"))
+                            if confirmation == 'no' or confirmation == '2':
+                                print("Returning to booking screen")
+                                break
+                            elif confirmation == 'yes' or confirmation == '1':
+                                index_tmp = find_index(serviceData[index]['booking'], userData[booked_index]['login'])
+                                del serviceData[index]['booking'][index_tmp]
+                                index_tmp = find_index(userData[booked_index]['booking'], serviceData[index]['serviceName'])
+                                del userData[booked_index]['booking'][index_tmp]
+                                save_service_data(serviceData)
+                                save_userdata(userData)
+                                print("Booking cancelled successfully")
+                                break
+                            else:
+                                print("There is no such option")
+    else:
+        print("How did you get this option???")
+    return currentUser
 
 
 
