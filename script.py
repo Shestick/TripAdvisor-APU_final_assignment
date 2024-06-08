@@ -914,7 +914,7 @@ def view_promotions():
     while True:
         promotion_list = open_promotions()
         if promotion_list == []:
-            confirmation =input("Unfortunately, there are no available promotions at the moment\nExit")
+            confirmation = input("Unfortunately, there are no available promotions at the moment\nExit")
             if confirmation == 'exit' or confirmation == '0':
                 print("Returning to options screen")
                 break
@@ -1050,7 +1050,6 @@ def manage_booking(currentUser):
     else:
         print("How did you get this option???")
     return currentUser
-
 
 
 def main():
