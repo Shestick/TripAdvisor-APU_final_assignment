@@ -1,7 +1,11 @@
 import json
 
 
+# Segment for emulation banned inbuilt function
+
+
 def custom_lower(input_string):
+    # Gets a string as input, returns the same string but with capital letters being replaced by lower ones
     result = ""
     for char in input_string:
         if 'A' <= char <= 'Z':
@@ -13,6 +17,7 @@ def custom_lower(input_string):
 
 
 def custom_lower_list(uncertain_list):
+    # Gets a list of strings as input, returns list with same strings, but capital letters replaced with lower ones
     lower_list = []
     for element in uncertain_list:
         lower_list.append(custom_lower(element))
@@ -20,6 +25,7 @@ def custom_lower_list(uncertain_list):
 
 
 def custom_enumerate(main_list):
+    # Gets a list of lines as input, returns list with added 'n. ' to each line, where n represents ordeal number
     aux_list = []
     counter = 1
     for _ in main_list:
@@ -29,11 +35,14 @@ def custom_enumerate(main_list):
 
 
 def find_index(custom_list, element):
+    # Returns index of a certain element in the certain list
     counter = 0
     for content in custom_list:
         if content == element:
             return counter
         counter += 1
+
+# Segment for external file handling: getting data from file and saving data into the file
 
 
 def open_userdata():
@@ -90,8 +99,81 @@ def save_promotions(promotions):
     with open('Promotions.json', 'w') as file:
         json.dump(promotions, file, indent=3)
 
+# Segment for some auxiliary functions
+
+
+def get_login_list():
+    # Returns list of all users registered in the system
+    userData = open_userdata()
+    login_list = [user['login'] for user in userData]
+    return login_list
+
+
+def get_active_login_list():
+    # Returns list of all users in the system, whose accounts are not blocked
+    userData = open_userdata()
+    active_login_list = []
+    for user in userData:
+        if user['active']:
+            active_login_list.append(user['login'])
+    return active_login_list
+
+
+def get_blocked_login_list():
+    # Returns list of all users in the system, whose accounts are blocked
+    userData = open_userdata()
+    blocked_login_list = []
+    for user in userData:
+        if not user['active']:
+            blocked_login_list.append(user['login'])
+    return blocked_login_list
+
+
+def get_service_list():
+    # Returns list of all services in the system, including ones from blocked users
+    service_list = []
+    serviceData = open_service_data()
+    for service in serviceData:
+        service_list.append(service['serviceName'])
+    return service_list
+
+
+def get_active_service_list():
+    # Return list of all services in the system, that are made by users that are currently active(not blocked)
+    userData = open_userdata()
+    active_service_list = []
+    serviceData = open_service_data()
+    for service in serviceData:
+        Host = service['userHost']
+        for user in userData:
+            if user['login'] == Host and user['active']:
+                active_service_list.append(service['serviceName'])
+    return active_service_list
+
+
+def get_user_service_list(currentUser):
+    # Returns list of services, provided by a certain user
+    service_list = []
+    serviceData = open_service_data()
+    for service in serviceData:
+        if service['userHost'] == currentUser['login']:
+            service_list.append(service['serviceName'])
+    return service_list
+
+
+def get_destination_list():
+    # Returns list of all destinations in the system
+    destination_list = []
+    destinationData = open_destination_data()
+    for destination in destinationData:
+        destination_list.append(destination['destinationName'])
+    return destination_list
+
+# Segment with big functions, each of which represents a certain functionality
+
 
 def assign_guest():
+    # Default user, exploring the system
     currentUser = {
         "userType": "Guest",
         "login": "default",
@@ -101,7 +183,39 @@ def assign_guest():
     return currentUser
 
 
+def interact_with_options(currentUser):
+    # This is a main cycle of the system, basically the main menu
+    # Handles showing options based on User Type, reading input from the main menu and terminating the program
+    # Full options here because I couldn't come up with more elegant solution to allow input not only as digits
+    # But also as actual character input
+    full_options = ['log in', 'sign up', 'block user', 'unblock user', 'delete account', 'log out', 'exit',
+                    'manage services', 'explore services', 'explore destinations', 'provide trip recommendation',
+                    'view recommended', 'update promotions', 'view promotions', 'manage booking', 'plan my trip']
+    while True:
+        check = 0
+        print(f"\n\nYou are currently logged as {currentUser['userType']}\n"
+              f"With your current access rights, you have access to: ")
+        options_to_show = show_options(currentUser)
+        options_to_process = custom_lower_list(options_to_show)
+        alternative = [str(index + 1) for index in range(len(options_to_show))]
+        options_to_show_aux = custom_enumerate(options_to_show)
+        print('\n'.join(option for option in options_to_show_aux))
+        choice = custom_lower(input("What would you like to do?\n"))
+        if choice in options_to_process:
+            index = find_index(full_options, choice)
+            check, currentUser = function_call(index, currentUser)
+        elif choice in alternative:
+            index = find_index(full_options, options_to_process[int(choice) - 1])
+            check, currentUser = function_call(index, currentUser)
+        else:
+            print("There are no such option")
+        if check == 1:
+            break
+
+
 def show_options(currentUser):
+    # This is what options are presented to user based on their User type
+    # Also couldn't come up with more alegant solution
     options = []
     if currentUser['userType'] == 'Admin':
         options = ['Log in', 'Log out', 'Sign up', 'Block User', 'Unblock User', 'Delete Account',
@@ -115,67 +229,59 @@ def show_options(currentUser):
         options = ['Log in', 'Sign up', 'View promotions', 'Explore Services', 'View recommended',
                    'Explore Destinations']
     options.append("Exit")
-    # options = custom_lower(options)
     return options
 
 
 def function_call(index, currentUser):
+    # Auxiliary function that is made to be used in interact_with_options, as both input as digits and letters are possible
+    # What I wanted to do is to make specific function for each option and lock it with specific index, so I can easily call
+    # This specific function with this index. However, I can't put functions in a list, so I had to create
+    # Something similar myself, but it is hardcoded, therefore expandability is not easily performed
     if index == 0:
         currentUser = log_in_account(currentUser)
         return 0, currentUser
     elif index == 1:
-        create_account(currentUser)
-        confirmation = custom_lower(input("Would you like to stay signed in this account? Yes/No\n"))
-        if confirmation == "yes" or confirmation == "1":
-            userData = open_userdata()
-            currentUser = userData[-1]
+        currentUser = create_account(currentUser)
         return 0, currentUser
     elif index == 2:
-        pass
-    elif index == 3:
         block_account(currentUser)
         return 0, currentUser
-    elif index == 4:
+    elif index == 3:
         unblock_account(currentUser)
         return 0, currentUser
+    elif index == 4:
+        currentUser = delete_account(currentUser)
+        return 0, currentUser
     elif index == 5:
-        delete_account(currentUser)
-        login_list = get_login_list()
-        if currentUser['login'] not in login_list:
-            currentUser = assign_guest()
+        currentUser = log_out()
         return 0, currentUser
     elif index == 6:
-        confirmation = custom_lower(input("Are you sure you want to log out? Yes/No\n"))
-        if confirmation == "yes" or confirmation == "1":
-            currentUser = assign_guest()
-        return 0, currentUser
-    elif index == 7:
         return 1, currentUser
-    elif index == 8:
+    elif index == 7:
         manage_services(currentUser)
         return 0, currentUser
-    elif index == 9:
+    elif index == 8:
         currentUser = explore_services(currentUser)
         return 0, currentUser
-    elif index == 10:
+    elif index == 9:
         explore_destinations()
         return 0, currentUser
-    elif index == 11:
+    elif index == 10:
         manage_recommendation(currentUser)
         return 0, currentUser
-    elif index == 12:
+    elif index == 11:
         view_recommendation()
         return 0, currentUser
-    elif index == 13:
+    elif index == 12:
         manage_promotions(currentUser)
         return 0, currentUser
-    elif index == 14:
+    elif index == 13:
         view_promotions()
         return 0, currentUser
-    elif index == 15:
+    elif index == 14:
         currentUser = manage_booking(currentUser)
         return 0, currentUser
-    elif index == 16:
+    elif index == 15:
         plan_my_trip(currentUser)
         return 0, currentUser
     else:
@@ -183,43 +289,14 @@ def function_call(index, currentUser):
         return 0, currentUser
 
 
-def interact_with_options(currentUser):
-    full_options = ['log in', 'sign up', 'search', 'block user', 'unblock user', 'delete account', 'log out', 'exit',
-                    'manage services', 'explore services', 'explore destinations', 'provide trip recommendation',
-                    'view recommended', 'update promotions', 'view promotions', 'manage booking', 'plan my trip']
-    while True:
-        check = 0
-        print(f"\n\nYou are currently logged as {currentUser['userType']}\n"
-              f"With your current access rights, you have access to: ")
-        options_to_show = show_options(currentUser)
-        options_to_process = custom_lower_list(options_to_show)
-        # options_to_process = []
-        # for i in range(len(options_to_show)):
-        #     options_to_process.append(custom_lower(options_to_show[i]))
-        alternative = [str(index + 1) for index in range(len(options_to_show))]
-        options_to_show_aux = custom_enumerate(options_to_show)
-        print('\n'.join(option for option in options_to_show_aux))
-        # print(options_to_process)
-        choice = custom_lower(input("What would you like to do?\n"))
-        if choice in options_to_process:
-            index = find_index(full_options, choice)
-            check, currentUser = function_call(index, currentUser)
-        elif choice in alternative:
-            index = find_index(full_options, options_to_process[int(choice) - 1])
-            # print(index)
-            check, currentUser = function_call(index, currentUser)
-        else:
-            print("There are no such option")
-        if check == 1:
-            break
-
-
 def create_account(currentUser):
+    # Creating account based on user input, prompting to stay signed once account created
+    # Admin accounts can be created only if you are already logged in as Admin
     userData = open_userdata()
     newUser = {'userType': 'default'}
 
     while newUser['userType'] == 'default':
-        userType = custom_lower(input("Please, enter which account you want to create: Admin, Service or Traveller\n"
+        userType = custom_lower(input("Please, enter which account you want to create:\n1. Admin\n2. Service\n3. Traveller\n"
                                       "Be aware that only Admins are allowed to create additional Admin accounts\n"))
         if (userType == 'admin' or userType == '1') and currentUser['userType'] == 'Admin':
             newUser['userType'] = 'Admin'
@@ -252,83 +329,20 @@ def create_account(currentUser):
         newUser['booking'] = []
         newUser['path'] = []
     userData.append(newUser)
+    print("Account created successfully")
+
+    confirmation = custom_lower(input("Would you like to stay signed in this account?\n1. Yes\n2. No\n"))
+    if confirmation == "yes" or confirmation == "1":
+        userData = open_userdata()
+        currentUser = userData[-1]
+    elif confirmation == 'no' or confirmation == '2':
+        print("Returning to main menu")
     save_userdata(userData)
-
-
-def get_login_list():
-    userData = open_userdata()
-    login_list = [user['login'] for user in userData]
-    return login_list
-
-
-def get_active_login_list():
-    userData = open_userdata()
-    active_login_list = []
-    for user in userData:
-        if user['active']:
-            active_login_list.append(user['login'])
-    return active_login_list
-
-
-def get_blocked_login_list():
-    userData = open_userdata()
-    blocked_login_list = []
-    for user in userData:
-        if not user['active']:
-            blocked_login_list.append(user['login'])
-    return blocked_login_list
-
-
-def get_user_service_list(currentUser):
-    service_list = []
-    serviceData = open_service_data()
-    for service in serviceData:
-        if service['userHost'] == currentUser['login']:
-            service_list.append(service['serviceName'])
-    return service_list
-
-
-def get_service_list():
-    service_list = []
-    serviceData = open_service_data()
-    for service in serviceData:
-        service_list.append(service['serviceName'])
-    return service_list
-
-
-def get_active_service_list():
-    userData = open_userdata()
-    active_service_list = []
-    serviceData = open_service_data()
-    for service in serviceData:
-        Host = service['userHost']
-        for user in userData:
-            if user['login'] == Host and user['active']:
-                active_service_list.append(service['serviceName'])
-    return active_service_list
-
-
-def get_destination_list():
-    destination_list = []
-    destinationData = open_destination_data()
-    for destination in destinationData:
-        destination_list.append(destination['destinationName'])
-    return destination_list
-
-
-def cancel_users_booking(user):
-    serviceData = open_service_data()
-    userData = open_userdata()
-    user['booking'] = []
-    for service in serviceData:
-        if user['login'] in service['booking']:
-            index = find_index(service['booking'], user['login'])
-            del service['booking'][index]
-    save_service_data(serviceData)
-    save_userdata(userData)
+    return currentUser
 
 
 def log_in_account(currentUser):
+    # Log in account, what else to say - prompting login and password, returning user profile
     userData = open_userdata()
     login_list = get_login_list()
     while True:
@@ -353,11 +367,23 @@ def log_in_account(currentUser):
             print("There are no such user, try again or type 0 to cancel")
 
 
-# def log_out():
-#     currentUser = assign_guest()
-#     return currentUser
+def log_out():
+    # Log out function
+    while True:
+        confirmation = custom_lower(input("Are you sure you want to log out?\n1. Yes\n2. No\n"))
+        if confirmation == "yes" or confirmation == "1":
+            currentUser = assign_guest()
+            return currentUser
+        elif confirmation == 'no' or confirmation == '2':
+            print("Log out cancelled")
+            break
+        else:
+            print("There is no such option")
+
 
 def block_account(currentUser):
+    # Admin - exclusive, allows them to suspend an account, blocking the person from using the system
+    # Removing all services provided by user, as well as other people's booking of these services
     while True:
         if currentUser['userType'] != 'Admin':
             print("How did you get this option???")
@@ -389,6 +415,8 @@ def block_account(currentUser):
 
 
 def unblock_account(currentUser):
+    # Admin - exclusive, allows them to unblock user, giving back their right to use the system.
+    # In case of Merchants, their services are NOT restored and has to be registered again
     while True:
         if currentUser['userType'] != 'Admin':
             print("How did you get this option???")
@@ -420,33 +448,75 @@ def unblock_account(currentUser):
 
 
 def delete_account(currentUser):
+    # Allows Admin to delete every user except for himself
+    # Allows everyone else to delete theirs account
     userData = open_userdata()
     login_list = get_login_list()
+    login_list_aux = custom_enumerate(login_list)
+    for user in login_list:
+        index_tmp = find_index(login_list, user)
+        if not userData[index_tmp]['active']:
+            login_list_aux[index_tmp] += ' (blocked)'
     if currentUser['userType'] == 'Admin':
+        print(f"User list:\n{'\n'.join(user for user in login_list_aux)}")
         user_to_delete = input("Write, which user you want to delete\n")
+        alternative = [str(index+1) for index in range (len(login_list))]
         if user_to_delete in login_list:
-            confirmation = custom_lower(input(f"Are you sure you want to delete user {user_to_delete}? Yes/No\n"))
-            if custom_lower(confirmation) == 'yes' or custom_lower(confirmation) == '1':
+            confirmation = custom_lower(input(f"Are you sure you want to delete user {user_to_delete}?\n1. Yes\n2. No\n"))
+            if confirmation == 'yes' or confirmation == '1':
                 index = find_index(login_list, user_to_delete)
                 cancel_users_booking(userData[index])
                 del userData[index]
                 save_userdata(userData)
                 print(f'User {user_to_delete} successfully deleted')
-            else:
+            elif confirmation == 'no' or confirmation == '2':
                 print("Deletion cancelled")
+            else:
+                print("There is no such option")
+        elif user_to_delete in alternative:
+            confirmation = custom_lower(input(f"Are you sure you want to delete user {login_list[int(user_to_delete)-1]}?\n1. Yes\n2. No\n"))
+            if confirmation == 'yes' or confirmation == '1':
+                index = int(user_to_delete)-1
+                cancel_users_booking(userData[index])
+                del userData[index]
+                save_userdata(userData)
+                print(f'User {login_list[int(user_to_delete)-1]} successfully deleted')
+            elif confirmation == 'no' or confirmation == '2':
+                print("Deletion cancelled")
+            else:
+                print("There is no such option")
         else:
             print(f"User {user_to_delete} not found")
+        return currentUser
     else:
         user_to_delete = currentUser["login"]
-        confirmation = custom_lower(input(f"Are you sure you want to delete user {user_to_delete}? Yes/No\n"))
-        if custom_lower(confirmation) == 'yes' or custom_lower(confirmation) == '1':
+        confirmation = custom_lower(input(f"Are you sure you want to delete your account {user_to_delete}?\n1. Yes\n2. No\n"))
+        if confirmation == 'yes' or confirmation == '1':
             index = find_index(login_list, user_to_delete)
+            cancel_users_booking(userData[index])
             del userData[index]
             save_userdata(userData)
-            print(f'User {user_to_delete} successfully deleted')
+            print(f'Your account {user_to_delete} successfully deleted')
+            currentUser = assign_guest()
+            return currentUser
+
+
+def cancel_users_booking(user):
+    # Auxiliary function that is used to delete booking information of a person from database
+    serviceData = open_service_data()
+    userData = open_userdata()
+    user['booking'] = []
+    for service in serviceData:
+        if user['login'] in service['booking']:
+            index = find_index(service['booking'], user['login'])
+            del service['booking'][index]
+    save_service_data(serviceData)
+    save_userdata(userData)
 
 
 def manage_services(currentUser):
+    # Merchant - exclusive
+    # Submenu, leading to three other options: Adding service, Deleting service and Managing service
     while True:
         if currentUser['userType'] != "Service":
             print("How did you get this option???")
@@ -468,6 +538,8 @@ def manage_services(currentUser):
 
 
 def add_service(currentUser):
+    # Creating new service from users input, prompts helping user all the way through
+    # All services can be bound to existing destination for user's convenience in planning
     new_service = {}
     while True:
         service_list = get_service_list()
@@ -530,14 +602,12 @@ def add_service(currentUser):
         print("Service creation cancelled")
 
 
-# def update_service_aux()
-
-
 def update_service(currentUser):
+    # Update information on already created service
+    # This part was highly modified in the process, so it's a bit messy, should be redone if I have time
     while True:
         service_list = get_user_service_list(currentUser)
         glob_service_list = get_service_list()
-        # I didn't want to redo the whole function from scratch, so I had to do this spaghetti
         if service_list[-1] != 'Exit':
             service_list.append('Exit')
         service_list_aux = custom_enumerate(service_list)
@@ -557,12 +627,15 @@ def update_service(currentUser):
             print("There is no such service")
             glob_index = -1
         while glob_index != -1:
+            # glob_index is index in global service list
             destinationData = open_destination_data()
             destination_list = get_destination_list()
             serviceData = open_service_data()
             if serviceData[glob_index]['placing'] != 'Not mentioned':
                 destination_index_1 = find_index(destination_list, serviceData[glob_index]['placing'])
+                # destination_index_1 allows to access service's placing before updating its settings
                 existence_index = find_index(destinationData[destination_index_1]['amenities'][0], serviceData[glob_index]['serviceName'])
+                # existence_index allows to access destination-bound service's index inside this destination's data
             else:
                 destination_index_1 = -1
             print(f"1. Service name: {serviceData[glob_index]['serviceName']}\n"
@@ -583,7 +656,6 @@ def update_service(currentUser):
                     else:
                         serviceData[glob_index]['serviceName'] = new_name
                         break
-                # serviceData[glob_index]['serviceName'] = new_name
                 save_service_data(serviceData)
                 if destination_index_1 != -1:
                     destinationData[destination_index_1]['amenities'][0][existence_index] = new_name
@@ -604,6 +676,7 @@ def update_service(currentUser):
                     save_service_data(serviceData)
                     if custom_lower(new_location) != 'not mentioned':
                         destination_index_2 = find_index(destination_list, serviceData[glob_index]['placing'])
+                        # destination_index_2 allows to access service's placing after updating its settings
                     else:
                         destination_index_2 = -1
                     if destination_index_1 != destination_index_2 and destination_index_2 != -1:
@@ -654,6 +727,7 @@ def update_service(currentUser):
 
 
 def delete_service(currentUser):
+    # Deletes service and all the booking associated with it
     while True:
         service_list = get_user_service_list(currentUser)
         glob_service_list = get_service_list()
@@ -664,7 +738,7 @@ def delete_service(currentUser):
         to_process = input("Which of your services you would like to delete?\n")
         alternative = [str(index + 1) for index in range(len(service_list))]
         if custom_lower(to_process) == 'exit' or int(to_process) == len(service_list):
-            print("Service update cancelled")
+            print("Service deletion cancelled")
             break
         elif custom_lower(to_process) in custom_lower_list(service_list):
             index = find_index(custom_lower_list(service_list), custom_lower(to_process))
@@ -676,16 +750,23 @@ def delete_service(currentUser):
             print("There is no such service")
             glob_index = -1
         if glob_index != -1:
-            confirmation = input(f"Are you sure you want to delete service {service_list[glob_index]}? Yes/No\n")
-            if custom_lower(confirmation) == "yes" or confirmation == '1':
+            confirmation = custom_lower(input(f"Are you sure you want to delete service {service_list[glob_index]}?\n1. Yes\n2. No\n"))
+            if confirmation == "yes" or confirmation == '1':
                 destinationData = open_destination_data()
                 serviceData = open_service_data()
                 destination_list = get_destination_list()
+                userData = open_userdata()
+                login_list = get_login_list()
+                for user in serviceData[glob_index]['booking']:
+                    booking_index_1 = find_index(login_list, user)
+                    booking_index_2 = find_index(userData[booking_index_1]['booking'], serviceData[glob_index]['serviceName'])
+                    del userData[booking_index_1]['booking'][booking_index_2]
                 destination_index = find_index(destination_list, serviceData[glob_index]['placing'])
                 existence_index = find_index(destinationData[destination_index]['amenities'][0], serviceData[glob_index]['serviceName'])
                 del serviceData[glob_index]
                 del destinationData[destination_index]['amenities'][0][existence_index]
                 del destinationData[destination_index]['amenities'][1][existence_index]
+                save_userdata(userData)
                 save_service_data(serviceData)
                 save_destination_data(destinationData)
                 print(f"Service {service_list[glob_index]} deleted successfully")
@@ -694,6 +775,8 @@ def delete_service(currentUser):
 
 
 def explore_services(currentUser):
+    # For Guests and Travellers - Allow them to see service list, then choose one of them to see additional info
+    # Travellers can also make a booking from this menu as well as cancel already booked service
     serviceData = open_service_data()
     active_service_list = get_active_service_list()
     service_list = get_service_list()
@@ -704,7 +787,6 @@ def explore_services(currentUser):
     while True:
         service_list_aux = custom_enumerate(active_service_list)
         print(f"Available services:\n{'\n'.join(service for service in service_list_aux)}\n")
-        # f"You are currently providing:\n{'\n'.join(f"{num + 1}. {service}" for num, service in enumerate(service_list))}\n"
         alternative = [str(index + 1) for index in range(len(active_service_list))]
         to_explore = custom_lower(input("Which one do you want to explore?\n"))
         if to_explore == 'exit' or to_explore == alternative[-1]:
@@ -764,6 +846,8 @@ def explore_services(currentUser):
 
 
 def explore_destinations():
+    # For Guests and Travellers - Allow them to see destinations list, then choose one of them to see additional info
+    # Such as Points of interest nearby and associated services
     destinationData = open_destination_data()
     destination_list = get_destination_list()
     destination_list.append('Exit')
@@ -797,6 +881,8 @@ def explore_destinations():
 
 
 def manage_recommendation(currentUser):
+    # For Admins - allow them to construct a recommendation for one of the existing destinations
+    # There is a choice between default recommendation structure(auto filled) and custom, made by user themselves
     destinationData = open_destination_data()
     destination_list = get_destination_list()
     destination_list.append('Exit')
@@ -849,6 +935,7 @@ def manage_recommendation(currentUser):
 
 
 def view_recommendation():
+    # For Guests and Travellers - Allow them to see current recommendation
     while True:
         recommendation = open_recommendation()
         confirmation = custom_lower(input(f"{recommendation[3]} {recommendation[0]} {recommendation[4]}\nExit\n"))
@@ -857,6 +944,8 @@ def view_recommendation():
 
 
 def manage_promotions(currentUser):
+    # For Admins - allow them to add and delete promotions of services
+    # Free style, doesn't require to choose from existing service
     while True:
         promotion_list = open_promotions()
         if currentUser['userType'] != "Admin":
@@ -915,6 +1004,7 @@ def manage_promotions(currentUser):
 
 
 def view_promotions():
+    # For Guests and Travellers - allow them to see current promotions
     while True:
         promotion_list = open_promotions()
         if promotion_list == []:
@@ -931,6 +1021,10 @@ def view_promotions():
 
 
 def manage_booking(currentUser):
+    # For Merchants and Travellers(Probably should have made 2 separate functions)
+    # Travellers can see their booking from this menu and cancel any of them
+    # Merchants can see their provided services and users, who booked them
+    # Merchants also can cancel certain booking
     userData = open_userdata()
     serviceData = open_service_data()
     service_list = get_service_list()
@@ -1057,7 +1151,7 @@ def manage_booking(currentUser):
 
 
 def plan_my_trip(currentUser):
-    # print(currentUser)
+    # For Travellers - Allow them to create and check their trip plan around KL, choosing from destinations in the system
     if currentUser['userType'] != 'Traveller':
         print("How did you get this option???")
     if currentUser['path'] == []:
@@ -1091,19 +1185,16 @@ def plan_my_trip(currentUser):
 
 
 def create_path(currentUser):
+    # Auxiliary function to create a new trip plan
     backup_path = currentUser['path'].copy()
     currentUser['path'] = []
     userData = open_userdata()
-    # serviceData = open_service_data()
-    # destinationData = open_destination_data()
     destination_list = get_destination_list()
-    destination_list_aux = custom_enumerate(destination_list)
     left_destination_list = destination_list.copy()
     lower_destination_list = custom_lower_list(destination_list)
     left_lower_destination_list = custom_lower_list(destination_list)
     while True:
         destination_list_tmp = currentUser['path']
-        # print(destination_list_tmp)
         destination_list_tmp_aux = custom_enumerate(destination_list_tmp)
         left_destination_list_aux = custom_enumerate(left_destination_list)
         print(f"Your current path:\n{'\n'.join(place for place in destination_list_tmp_aux)}")
@@ -1121,13 +1212,10 @@ def create_path(currentUser):
         elif confirmation in alternative:
             left_index = int(confirmation) - 1
             index = find_index(lower_destination_list, left_lower_destination_list[left_index])
-            # print(destination_list)
-            # print(index)
             currentUser['path'].append(destination_list[index])
             del left_lower_destination_list[left_index]
             del left_destination_list[left_index]
         elif confirmation == 'exit' or confirmation == '-1':
-            # while True:
             confirmation = custom_lower(input("Are you sure you want to discard changes and exit?\n1. Yes\n2. No\n"))
             if confirmation == 'yes' or confirmation == '1':
                 print("Returning to planning screen")
@@ -1138,7 +1226,6 @@ def create_path(currentUser):
             else:
                 print("There is no such option")
         elif confirmation == 'save and exit' or confirmation == '0':
-            # while True:
             confirmation = custom_lower(input("Are you sure you want to save changes and exit?\n1. Yes\n2. No\n"))
             if confirmation == 'yes' or confirmation == '1':
                 print("New plan set successfully")
@@ -1157,14 +1244,7 @@ def create_path(currentUser):
 
 def main():
     currentUser = assign_guest()
-    # tmp = get_login_list()
-    # print(tmp)
-    # login_list = get_login_list()
-    # print(login_list)
     interact_with_options(currentUser)
 
 
 main()
-
-# data = open_userdata()
-# print(*data, sep='\n')
