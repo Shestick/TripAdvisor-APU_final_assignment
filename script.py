@@ -296,9 +296,12 @@ def create_account(currentUser):
     newUser = {'userType': 'default'}
 
     while newUser['userType'] == 'default':
-        userType = custom_lower(input("Please, enter which account you want to create:\n1. Admin\n2. Service\n3. Traveller\n"
+        userType = custom_lower(input("Please, enter which account you want to create:\n1. Admin\n2. Service\n3. Traveller\n0. Exit\n"
                                       "Be aware that only Admins are allowed to create additional Admin accounts\n"))
-        if (userType == 'admin' or userType == '1') and currentUser['userType'] == 'Admin':
+        if userType == 'exit' or userType == '0':
+            print("Returning to main menu")
+            return currentUser
+        elif (userType == 'admin' or userType == '1') and currentUser['userType'] == 'Admin':
             newUser['userType'] = 'Admin'
         elif (userType == 'admin' or userType == '1') and currentUser['userType'] != 'Admin':
             print("You have insufficient access rights")
