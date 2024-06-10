@@ -199,18 +199,20 @@ def interact_with_options(currentUser):
         options_to_process = custom_lower_list(options_to_show)
         alternative = [str(index + 1) for index in range(len(options_to_show))]
         options_to_show_aux = custom_enumerate(options_to_show)
-        print('\n'.join(option for option in options_to_show_aux))
+        print(f"{'\n'.join(option for option in options_to_show_aux)}\n0. Exit")
         choice = custom_lower(input("What would you like to do?\n"))
-        if choice in options_to_process:
+        if choice == 'exit' or choice == '0':
+            break
+        elif choice in options_to_process:
             index = find_index(full_options, choice)
-            check, currentUser = function_call(index, currentUser)
+            currentUser = function_call(index, currentUser)
         elif choice in alternative:
             index = find_index(full_options, options_to_process[int(choice) - 1])
-            check, currentUser = function_call(index, currentUser)
+            currentUser = function_call(index, currentUser)
         else:
             print("There are no such option")
-        if check == 1:
-            break
+        # if check == 1:
+        #     break
 
 
 def show_options(currentUser):
@@ -228,7 +230,7 @@ def show_options(currentUser):
     elif currentUser['userType'] == 'Guest':
         options = ['Log in', 'Sign up', 'View promotions', 'Explore Services', 'View recommended',
                    'Explore Destinations']
-    options.append("Exit")
+    # options.append("Exit")
     return options
 
 
@@ -239,54 +241,54 @@ def function_call(index, currentUser):
     # Something similar myself, but it is hardcoded, therefore expandability is not easily performed
     if index == 0:
         currentUser = log_in_account(currentUser)
-        return 0, currentUser
+        return currentUser
     elif index == 1:
         currentUser = create_account(currentUser)
-        return 0, currentUser
+        return currentUser
     elif index == 2:
         block_account(currentUser)
-        return 0, currentUser
+        return currentUser
     elif index == 3:
         unblock_account(currentUser)
-        return 0, currentUser
+        return currentUser
     elif index == 4:
         currentUser = delete_account(currentUser)
-        return 0, currentUser
+        return currentUser
     elif index == 5:
         currentUser = log_out()
-        return 0, currentUser
-    elif index == 6:
-        return 1, currentUser
+        return currentUser
+    # elif index == 6:
+    #     return 1, currentUser
     elif index == 7:
         manage_services(currentUser)
-        return 0, currentUser
+        return currentUser
     elif index == 8:
         currentUser = explore_services(currentUser)
-        return 0, currentUser
+        return currentUser
     elif index == 9:
         explore_destinations()
-        return 0, currentUser
+        return currentUser
     elif index == 10:
         manage_recommendation(currentUser)
-        return 0, currentUser
+        return currentUser
     elif index == 11:
         view_recommendation()
-        return 0, currentUser
+        return currentUser
     elif index == 12:
         manage_promotions(currentUser)
-        return 0, currentUser
+        return currentUser
     elif index == 13:
         view_promotions()
-        return 0, currentUser
+        return currentUser
     elif index == 14:
         currentUser = manage_booking(currentUser)
-        return 0, currentUser
+        return currentUser
     elif index == 15:
         plan_my_trip(currentUser)
-        return 0, currentUser
+        return currentUser
     else:
         print("There are no such option available")
-        return 0, currentUser
+        return currentUser
 
 
 def create_account(currentUser):
@@ -393,8 +395,8 @@ def block_account(currentUser):
         active_users = get_active_login_list()
         blocked_users = get_blocked_login_list()
         print(f"Currently active users:\n{'\n'.join(user for user in active_users)}")
-        user_to_block = input("Which user do you want to block?\nType 0 to cancel\n")
-        if user_to_block == "0":
+        user_to_block = input("Which user do you want to block?\n0. Exit\n")
+        if user_to_block == "0" or user_to_block == '0':
             break
         elif user_to_block in active_users and user_to_block != currentUser['login']:
             confirmation = input(f"Are you sure you want to block user {user_to_block}? Yes/No\n")
@@ -429,8 +431,8 @@ def unblock_account(currentUser):
             print("There are no currently blocked users")
             break
         print(f"Currently blocked users:\n{'\n'.join(user for user in blocked_users)}")
-        user_to_unblock = input("Which user do you want to unblock?\nType 0 to cancel\n")
-        if user_to_unblock == "0":
+        user_to_unblock = input("Which user do you want to unblock?\n0. Exit\n")
+        if user_to_unblock == "0" or user_to_unblock == 'exit':
             break
         elif user_to_unblock in blocked_users:
             confirmation = input(f"Are you sure you want to block user {user_to_unblock}? Yes/No\n")
@@ -529,8 +531,8 @@ def manage_services(currentUser):
         else:
             print(f"You are currently providing:\n{'\n'.join(service for service in service_list)}\n")
             to_process = input(
-                "What would you like to do?\n1. Add Service\n2. Update Services\n3. Delete Service\n4. Exit\n")
-        if custom_lower(to_process) == "exit" or to_process == '4':
+                "What would you like to do?\n1. Add Service\n2. Update Services\n3. Delete Service\n0. Exit\n")
+        if custom_lower(to_process) == "exit" or to_process == '0':
             break
         elif custom_lower(to_process) == "add service" or to_process == '1':
             add_service(currentUser)
@@ -907,7 +909,7 @@ def manage_recommendation(currentUser):
         else:
             index = -1
         while index != -1:
-            confirmation = custom_lower(input("Do you wish to use default structure?\n1. Yes\n2. No\n3. Exit\n"))
+            confirmation = custom_lower(input("Do you wish to use default structure?\n1. Yes\n2. No\n0. Exit\n"))
             if confirmation == 'yes' or confirmation == '1':
                 recommendation[0] = destinationData[index]['destinationName']
                 recommendation[3] = recommendation[1]
@@ -921,7 +923,7 @@ def manage_recommendation(currentUser):
                 second_part = input(f"{first_part} {destinationData[index]['destinationName']} 'Second part'\n"
                                     f"Enter the second part:\n")
                 confirmation = custom_lower(input(f"{first_part} {destinationData[index]['destinationName']}{second_part}\n"
-                                                  f"Are you satisfied with the result?\n1. Yes\n2. No\n3. Exit\n"))
+                                                  f"Are you satisfied with the result?\n1. Yes\n2. No\n"))
                 if confirmation == 'yes' or confirmation == '1':
                     recommendation[3] = first_part
                     recommendation[4] = second_part
@@ -931,7 +933,7 @@ def manage_recommendation(currentUser):
                     print("Recommendation update cancelled")
                 else:
                     print("This is not a valid option")
-            elif confirmation == 'exit' or confirmation == '3':
+            elif confirmation == 'exit' or confirmation == '0':
                 break
             else:
                 print("This is not a valid option")
@@ -941,7 +943,7 @@ def view_recommendation():
     # For Guests and Travellers - Allow them to see current recommendation
     while True:
         recommendation = open_recommendation()
-        confirmation = custom_lower(input(f"{recommendation[3]} {recommendation[0]} {recommendation[4]}\nExit\n"))
+        confirmation = custom_lower(input(f"{recommendation[3]} {recommendation[0]} {recommendation[4]}\n0. Exit\n"))
         if confirmation == 'exit' or confirmation == '0':
             break
 
@@ -957,7 +959,7 @@ def manage_promotions(currentUser):
             print("No promotions currently active\n")
         else:
             print(f"Current promotions:\n{'\n'.join(promotion for promotion in promotion_list)}\n")
-        to_process = custom_lower(input("What do you want to do\n1. Add promotion\n2. Delete promotion\n3. Exit\n"))
+        to_process = custom_lower(input("What do you want to do\n1. Add promotion\n2. Delete promotion\n0. Exit\n"))
         if to_process == 'yes' or to_process == '1':
             while True:
                 new_promotion = input("Type your promotion:\n")
@@ -980,7 +982,7 @@ def manage_promotions(currentUser):
                     print("There are no promotions to delete")
                     break
                 promotion_list_aux = custom_enumerate(promotion_list)
-                print(f"Current promotions:\n{'\n'.join(promotion for promotion in promotion_list_aux)}\nExit\n")
+                print(f"Current promotions:\n{'\n'.join(promotion for promotion in promotion_list_aux)}\n0. Exit\n")
                 aux_list = [str(index+1) for index in range(len(promotion_list))]
                 to_delete = input("Which one do you want to delete?\n")
                 if custom_lower(to_delete) == 'exit' or to_delete == '0':
@@ -999,7 +1001,7 @@ def manage_promotions(currentUser):
                         print("There is no such option")
                 else:
                     print("There is no such option")
-        elif to_process == 'exit' or to_process == '3':
+        elif to_process == 'exit' or to_process == '0':
             print("Returning to options screen")
             break
         else:
@@ -1011,13 +1013,13 @@ def view_promotions():
     while True:
         promotion_list = open_promotions()
         if promotion_list == []:
-            confirmation = input("Unfortunately, there are no available promotions at the moment\nExit")
+            confirmation = input("Unfortunately, there are no available promotions at the moment\n0. Exit")
             if confirmation == 'exit' or confirmation == '0':
                 print("Returning to options screen")
                 break
         else:
             promotion_list_aux = custom_enumerate(promotion_list)
-            confirmation = custom_lower(input(f"Current promotions:\n{'\n'.join(promotion for promotion in promotion_list_aux)}\nExit\n"))
+            confirmation = custom_lower(input(f"Current promotions:\n{'\n'.join(promotion for promotion in promotion_list_aux)}\n0. Exit\n"))
             if confirmation == 'exit' or confirmation == '0':
                 print("Returning to options screen")
                 break
