@@ -773,6 +773,8 @@ def delete_service(currentUser):
                     booking_index_1 = find_index(login_list, user)
                     booking_index_2 = find_index(userData[booking_index_1]['booking'], serviceData[glob_index]['serviceName'])
                     del userData[booking_index_1]['booking'][booking_index_2]
+                print(destination_list)
+                print(serviceData[glob_index]['placing'])
                 destination_index = find_index(destination_list, serviceData[glob_index]['placing'])
                 existence_index = find_index(destinationData[destination_index]['amenities'][0], serviceData[glob_index]['serviceName'])
                 del serviceData[glob_index]
@@ -781,7 +783,7 @@ def delete_service(currentUser):
                 save_userdata(userData)
                 save_service_data(serviceData)
                 save_destination_data(destinationData)
-                print(f"Service {service_list[glob_index]} deleted successfully")
+                print(f"Service {glob_service_list[glob_index]} deleted successfully")
             else:
                 print("Service deletion cancelling")
 
