@@ -539,7 +539,8 @@ def manage_services(currentUser):
         if service_list == []:
             to_process = input("What would you like to do?\n1. Add Service\n0. Exit\n")
         else:
-            print(f"You are currently providing:\n{'\n'.join(service for service in service_list)}\n")
+            service_list_aux = custom_enumerate(service_list)
+            print(f"You are currently providing:\n{'\n'.join(service for service in service_list_aux)}\n")
             to_process = input(
                 "What would you like to do?\n1. Add Service\n2. Update Services\n3. Delete Service\n0. Exit\n")
         if custom_lower(to_process) == "exit" or to_process == '0':
@@ -751,17 +752,17 @@ def delete_service(currentUser):
         if to_process == 'exit' or to_process == '0':
             print("Service deletion cancelled")
             break
-        elif custom_lower(to_process) in custom_lower_list(service_list):
-            index = find_index(custom_lower_list(service_list), custom_lower(to_process))
-            glob_index = find_index(custom_lower_list(glob_service_list), custom_lower(to_process))
+        elif to_process in custom_lower_list(service_list):
+            index = find_index(custom_lower_list(service_list), to_process)
+            glob_index = find_index(custom_lower_list(glob_service_list), to_process)
         elif to_process in alternative:
             index = int(to_process) - 1
-            glob_index = find_index(custom_lower_list(glob_service_list), custom_lower(service_list[index]))
+            glob_index = find_index(glob_service_list, service_list[index])
         else:
             print("There is no such service")
             glob_index = -1
         if glob_index != -1:
-            confirmation = custom_lower(input(f"Are you sure you want to delete service {service_list[glob_index]}?\n1. Yes\n2. No\n"))
+            confirmation = custom_lower(input(f"Are you sure you want to delete service {service_list[index]}?\n1. Yes\n2. No\n"))
             if confirmation == "yes" or confirmation == '1':
                 destinationData = open_destination_data()
                 serviceData = open_service_data()
