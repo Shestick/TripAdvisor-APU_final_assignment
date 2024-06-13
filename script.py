@@ -658,9 +658,9 @@ def update_service(currentUser):
                   f"4. Provided quantity: {serviceData[glob_index]['quantity']}\n"
                   f"5. Price: {serviceData[glob_index]['price']}\n"
                   f"6. Schedule: {serviceData[glob_index]['schedule']}\n"
-                  f"7. Exit")
-            to_update = input("Which part you would like to update?\n")
-            if custom_lower(to_update) == 'service name' or custom_lower(to_update) == 'name' or to_update == '1':
+                  f"0. Exit")
+            to_update = custom_lower(input("Which part you would like to update?\n"))
+            if to_update == 'service name' or to_update == 'name' or to_update == '1':
                 while True:
                     service_list = get_service_list()
                     new_name = input(f"Current Service name: {serviceData[glob_index]['serviceName']}\n"
@@ -675,9 +675,9 @@ def update_service(currentUser):
                     destinationData[destination_index_1]['amenities'][0][existence_index] = new_name
                 save_destination_data(destinationData)
                 print("Service update successful")
-            elif custom_lower(to_update) == 'hosted by' or to_update == '2':
+            elif to_update == 'hosted by' or to_update == '2':
                 print("You can not update this")
-            elif custom_lower(to_update) == 'location' or to_update == '3':
+            elif to_update == 'location' or to_update == '3':
                 destination_list = get_destination_list()
                 destination_list.append('Not mentioned')
                 new_location = input(f"Current Location: {serviceData[glob_index]['placing']}\n"
@@ -706,20 +706,19 @@ def update_service(currentUser):
                     print("Service update successful")
                 else:
                     print("There is no such location available")
-            elif custom_lower(to_update) == 'provided quantity' or custom_lower(
-                    to_update) == 'quantity' or to_update == '4':
+            elif to_update == 'provided quantity' or to_update == 'quantity' or to_update == '4':
                 new_quantity = input(f"Current Quantity: {serviceData[glob_index]['quantity']}\n"
                                      f"New Quantity: ")
                 serviceData[glob_index]['quantity'] = new_quantity
                 save_service_data(serviceData)
                 print("Service update successful")
-            elif custom_lower(to_update) == 'price' or to_update == '5':
+            elif to_update == 'price' or to_update == '5':
                 new_price = input(f"Current Price: {serviceData[glob_index]['price']}\n"
                                   f"New Price: ")
                 serviceData[glob_index]['price'] = new_price
                 save_service_data(serviceData)
                 print("Service update successful")
-            elif custom_lower(to_update) == 'schedule' or to_update == '6':
+            elif to_update == 'schedule' or to_update == '6':
                 new_start_date = input(f"Current schedule: {serviceData[glob_index]['price']}\n"
                                        f"Type new start date 'Day Month' or 'Continuous': ")
                 if custom_lower(new_start_date) != 'continuous':
@@ -733,7 +732,7 @@ def update_service(currentUser):
                     destinationData[destination_index_1]['amenities'][1][existence_index] = schedule
                 save_destination_data(destinationData)
                 print("Service update successful")
-            elif custom_lower(to_update) == 'exit' or to_update == '7':
+            elif to_update == 'exit' or to_update == '0':
                 print("Returning to service page...")
                 break
             else:
@@ -1045,7 +1044,7 @@ def manage_booking(currentUser):
     if currentUser['userType'] == 'Traveller':
         while True:
             if currentUser['booking'] == []:
-                confirmation = custom_lower(input("You don't have anything booked at this moment\n0. Exit"))
+                confirmation = custom_lower(input("You don't have anything booked at this moment\n0. Exit\n"))
                 if confirmation == 'exit' or confirmation == '0':
                     print("Returning to options screen")
                     break
@@ -1122,6 +1121,7 @@ def manage_booking(currentUser):
                     booked_users_list = serviceData[index]['booking']
                     if booked_users_list == []:
                         print("This service has not got any bookings at this moment")
+                        break
                     else:
                         booked_users_list_aux = custom_enumerate(booked_users_list)
                         lower_booked_users_list = custom_lower_list(booked_users_list)
