@@ -1,11 +1,12 @@
-def custom_len(list):
-    length = 0
-    for item in list:
-        length += 1
-    return length
+def custom_copy(list_1):
+    list_2 = []
+    for element in list_1:
+        list_2.append(element)
+    return list_2
 
+string = "1\n2\n3\n4"
 
-login_list = ['0', '1', '2', '3', '4', '5', '6']
-
-alternative = [str(index + 1) for index in range(custom_len(login_list))]
-print(alternative)
+list_1 = ['yes', 'no']
+list_2 = custom_copy(list_1)
+list_2.append('Maybe')
+print(list_1[-1])

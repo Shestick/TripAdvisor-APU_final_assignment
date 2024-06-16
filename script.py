@@ -159,7 +159,7 @@ def get_active_service_list():
 
 
 def get_user_service_list(currentUser):
-    # Returns list of services, provided by a certain user
+    # Returns list of services, provided by a current user
     service_list = []
     serviceData = open_service_data()
     for service in serviceData:
@@ -194,7 +194,7 @@ def interact_with_options(currentUser):
     # This is the main cycle of the system, essentially the main menu.
     # Handles showing options based on User Type, reading input from the main menu, and terminating the program.
     # 'full_options' contains all possible options to allow input as both digits and characters.
-    full_options = ['log in', 'sign up', 'block user', 'unblock user', 'delete account', 'log out', 'exit',
+    full_options = ['log in', 'sign up', 'block user', 'unblock user', 'delete account', 'log out', '#exit#',
                     'manage services', 'explore services', 'explore destinations', 'provide trip recommendation',
                     'view recommended', 'update promotions', 'view promotions', 'manage booking', 'plan my trip']
 
@@ -244,7 +244,6 @@ def show_options(currentUser):
     elif currentUser['userType'] == 'Guest':
         options = ['Log in', 'Sign up', 'View promotions', 'Explore Services', 'View recommended',
                    'Explore Destinations']
-    # options.append("Exit")
     return options
 
 
@@ -875,7 +874,6 @@ def update_service(currentUser):
 
 def delete_service(currentUser):
     # Deletes service and all the booking associated with it
-
     while True:
         # Fetch user's service list and global service list
         service_list = get_user_service_list(currentUser)
@@ -1474,7 +1472,7 @@ def create_path(currentUser):
         if currentUser['path'] == []:
             confirmation = custom_lower(input(f"{'-'*20}\n{'\n'.join(place for place in left_destination_list_aux)}\n0. Exit\nWhich place do you want to visit first?\n"))
         else:
-            confirmation = custom_lower(input(f"{'-'*20}\n{'\n'.join(place for place in left_destination_list_aux)}\n-1. Exit\n0. Save and Exit\nWhich place do you want to visit next?\n"))
+            confirmation = custom_lower(input(f"{'-'*20}\n{'\n'.join(place for place in left_destination_list_aux)}\n0. Exit\n-1. Save and Exit\nWhich place do you want to visit next?\n"))
 
         alternative = [str(index+1) for index in range(len(left_destination_list_aux))]
 
